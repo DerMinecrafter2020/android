@@ -5,6 +5,7 @@ import com.android.swingmusic.album.presentation.screen.destinations.AllAlbumScr
 import com.android.swingmusic.artist.presentation.screen.destinations.AllArtistsScreenDestination
 import com.android.swingmusic.folder.presentation.screen.destinations.FoldersAndTracksScreenDestination
 import com.android.swingmusic.search.presentation.screen.destinations.SearchScreenDestination
+import com.android.swingmusic.settings.presentation.screen.destinations.SettingsScreenDestination
 import com.ramcosta.composedestinations.spec.DestinationSpec
 import com.android.swingmusic.uicomponent.R as UiComponent
 
@@ -35,5 +36,11 @@ sealed class BottomNavItem(
         title = "Search",
         icon = UiComponent.drawable.ic_search,
         destination = SearchScreenDestination
+    )
+
+    data object Settings : BottomNavItem(
+        title = "Settings",
+        icon = UiComponent.drawable.ic_settings,
+        destination = SettingsScreenDestination
     )
 }

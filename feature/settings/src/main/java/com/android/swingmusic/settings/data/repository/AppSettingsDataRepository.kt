@@ -59,4 +59,16 @@ class AppSettingsDataRepository @Inject constructor(
     override suspend fun setArtistSortOrder(order: SortOrder) {
         appSettings.updateArtistSortOrder(order.name)
     }
+
+    // --- Discord Webhook Settings ---
+    override val discordWebhookEnabled: Flow<Boolean> = appSettings.getDiscordWebhookEnabled
+    override val discordWebhookUrl: Flow<String> = appSettings.getDiscordWebhookUrl
+
+    override suspend fun setDiscordWebhookEnabled(enabled: Boolean) {
+        appSettings.updateDiscordWebhookEnabled(enabled)
+    }
+
+    override suspend fun setDiscordWebhookUrl(url: String) {
+        appSettings.updateDiscordWebhookUrl(url)
+    }
 }

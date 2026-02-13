@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -57,7 +58,9 @@ import androidx.core.net.toUri
 class MediaControllerViewModel @Inject constructor(
     private val pLayerRepository: PLayerRepository,
     private val authRepository: AuthRepository,
-    private val vibrator: Vibrator
+    private val vibrator: Vibrator,
+    private val webhookManager: com.android.swingmusic.settings.data.worker.DiscordWebhookManager,
+    private val settingsRepository: com.android.swingmusic.settings.domain.repository.AppSettingsRepository
 ) : ViewModel() {
     private val _baseUrl: MutableStateFlow<String?> = MutableStateFlow(null)
     val baseUrl: StateFlow<String?> get() = _baseUrl
@@ -84,6 +87,23 @@ class MediaControllerViewModel @Inject constructor(
 
     init {
         refreshBaseUrl()
+        startDiscordWebhookTimer()
+    }
+
+    private fun startDiscordWebhookTimer() {
+        viewModelScope.launch {
+            while (true) {
+                delay(180_000) // 3 minutes
+                val enabled = try {
+                    settingsRepository.discordWebhookEnabled.first()
+                } catch (e: Exception) {
+                    false
+                }
+                if (enabled) {
+                    webhookManager.sendNowPlayingWebhook(_playerUiState.value.nowPlayingTrack)
+                }
+            }
+        }
     }
 
     fun refreshBaseUrl() {

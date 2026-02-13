@@ -64,6 +64,16 @@ dependencies {
     // Hilt Navigation-Compose
     implementation(libs.androidx.hilt.navigation.compose)
 
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+
+    // Retrofit & Gson
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+
+    // Auth module
+    implementation(project(":auth"))
 
     //Prefs Datastore
     implementation(libs.androidx.datastore.preferences)

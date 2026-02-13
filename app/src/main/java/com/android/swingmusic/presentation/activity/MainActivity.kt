@@ -68,6 +68,7 @@ import com.android.swingmusic.search.presentation.event.SearchUiEvent
 import com.android.swingmusic.search.presentation.screen.destinations.SearchScreenDestination
 import com.android.swingmusic.search.presentation.screen.destinations.ViewAllSearchResultsDestination
 import com.android.swingmusic.search.presentation.viewmodel.SearchViewModel
+import com.android.swingmusic.settings.presentation.screen.destinations.SettingsScreenDestination
 import com.android.swingmusic.service.PlaybackService
 import com.android.swingmusic.service.SessionTokenManager
 import com.android.swingmusic.uicomponent.presentation.theme.SwingMusicTheme
@@ -146,6 +147,7 @@ class MainActivity : ComponentActivity() {
                 // BottomNavItem.Playlist,
                 BottomNavItem.Artist,
                 BottomNavItem.Search,
+                BottomNavItem.Settings,
             )
 
             // Map of BottomNavItem to their route prefixes
@@ -164,7 +166,8 @@ class MainActivity : ComponentActivity() {
                 BottomNavItem.Search to listOf(
                     SearchScreenDestination.route,
                     ViewAllSearchResultsDestination.route
-                )
+                ),
+                BottomNavItem.Settings to listOf(SettingsScreenDestination.route)
             )
 
 

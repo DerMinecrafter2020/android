@@ -13,6 +13,9 @@ interface AppSettingsRepository {
     val artistSortBy: Flow<SortBy>
     val artistSortOrder: Flow<SortOrder>
 
+    val discordWebhookEnabled: Flow<Boolean>
+    val discordWebhookUrl: Flow<String>
+
     suspend fun setAlbumGridCount(count: Int)
     suspend fun setAlbumSortBy(sortBy: SortBy)
     suspend fun setAlbumSortOrder(order: SortOrder)
@@ -20,4 +23,7 @@ interface AppSettingsRepository {
     suspend fun setArtistGridCount(count: Int)
     suspend fun setArtistSortBy(sortBy: SortBy)
     suspend fun setArtistSortOrder(order: SortOrder)
+
+    suspend fun setDiscordWebhookEnabled(enabled: Boolean)
+    suspend fun setDiscordWebhookUrl(url: String)
 }
