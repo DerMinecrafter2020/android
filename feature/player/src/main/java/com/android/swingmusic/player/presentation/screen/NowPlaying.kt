@@ -185,17 +185,12 @@ private fun SyncedLyricsView(
     lines: List<LyricLine>,
     currentPositionMs: Long
 ) {
+    // Find the current lyric line based on position
     val currentIndex by remember(currentPositionMs) {
         derivedStateOf {
-            var idx = 0
-            for (i in lines.indices) {
-                if (lines[i].timeMs <= currentPositionMs) {
-                    idx = i
-                } else {
-                    break
-                }
+            lines.indexOfFirst { it.timeMs > currentPositionMs }.let {
+                if (it == -1) lines.size - 1 else maxOf(0, it - 1)
             }
-            idx
         }
     }
 
@@ -204,7 +199,9 @@ private fun SyncedLyricsView(
     LaunchedEffect(currentIndex) {
         if (currentIndex >= 0 && lines.isNotEmpty()) {
             val target = (currentIndex - 2).coerceAtLeast(0)
-            listState.animateScrollToItem(target)
+            if (target < lines.size) {
+                listState.animateScrollToItem(target, scrollOffset = -200)
+            }
         }
     }
 
@@ -213,8 +210,8 @@ private fun SyncedLyricsView(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp),
-        contentPadding = PaddingValues(vertical = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        contentPadding = PaddingValues(vertical = 200.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         itemsIndexed(lines) { index, line ->
             if (line.text.isBlank()) return@itemsIndexed
@@ -222,14 +219,15 @@ private fun SyncedLyricsView(
             Text(
                 text = line.text,
                 style = MaterialTheme.typography.titleLarge,
-                fontSize = if (isCurrent) 26.sp else 20.sp,
+                fontSize = if (isCurrent) 28.sp else 18.sp,
                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                 color = if (isCurrent)
                     MaterialTheme.colorScheme.onSurface
                 else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                textAlign = TextAlign.Start,
-                lineHeight = if (isCurrent) 34.sp else 28.sp
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                textAlign = TextAlign.Center,
+                lineHeight = if (isCurrent) 36.sp else 24.sp,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
@@ -762,17 +760,15 @@ private fun NowPlaying(
         }
 
         // Lyrics overlay
-        AnimatedVisibility(
-            visible = showLyrics,
-            enter = fadeIn(animationSpec = tween(300)),
-            exit = fadeOut(animationSpec = tween(300))
-        ) {
+        if (showLyrics) {
             LyricsView(
                 lyricsState = lyricsState,
                 seekPosition = seekPosition,
                 trackDurationSec = track.duration,
                 onCloseLyrics = onClickLyricsIcon,
-                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
             )
         }
     }
