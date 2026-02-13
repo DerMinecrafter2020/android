@@ -26,7 +26,7 @@ More features will be implemented in the future.
 
 ### How to use
 
-Download the app from the [releases page](https://github.com/swingmx/android/releases) and install the APK. When you launch the app, you should be prompted to scan a QR code or enter your server details manually.
+Download the app from the [releases page](https://github.com/DerMinecrafter2020/android/releases) and install the APK. When you launch the app, you should be prompted to scan a QR code or enter your server details manually.
 
 You can go to `Settings > Pair device` on the webclient to get the QR code.
 
