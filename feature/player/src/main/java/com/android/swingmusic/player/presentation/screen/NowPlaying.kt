@@ -102,89 +102,65 @@ private fun LyricsView(
     lyricsState: LyricsState,
     seekPosition: Float,
     trackDurationSec: Int,
-    onCloseLyrics: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val currentPositionMs = (seekPosition * trackDurationSec * 1000L).toLong()
 
     Box(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)),
-            contentAlignment = Alignment.Center
-        ) {
-            when (lyricsState) {
-                is LyricsState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(40.dp),
-                        strokeCap = StrokeCap.Round,
-                        strokeWidth = 2.dp
-                    )
-                }
+        when (lyricsState) {
+            is LyricsState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp),
+                    strokeCap = StrokeCap.Round,
+                    strokeWidth = 2.dp
+                )
+            }
 
-                is LyricsState.NotFound -> {
+            is LyricsState.NotFound -> {
+                Text(
+                    text = "No lyrics found",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+
+            is LyricsState.Error -> {
+                Text(
+                    text = "Couldn't load lyrics",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+
+            is LyricsState.Success -> {
+                val syncedLyrics = lyricsState.syncedLyrics
+                val plainLyrics = lyricsState.plainLyrics
+
+                if (!syncedLyrics.isNullOrEmpty()) {
+                    SyncedLyricsView(
+                        lines = syncedLyrics,
+                        currentPositionMs = currentPositionMs
+                    )
+                } else if (!plainLyrics.isNullOrEmpty()) {
+                    PlainLyricsView(plainLyrics = plainLyrics)
+                } else {
                     Text(
                         text = "No lyrics found",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 }
-
-                is LyricsState.Error -> {
-                    Text(
-                        text = "Couldn't load lyrics",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                }
-
-                is LyricsState.Success -> {
-                    val syncedLyrics = lyricsState.syncedLyrics
-                    val plainLyrics = lyricsState.plainLyrics
-
-                    if (!syncedLyrics.isNullOrEmpty()) {
-                        SyncedLyricsView(
-                            lines = syncedLyrics,
-                            currentPositionMs = currentPositionMs
-                        )
-                    } else if (!plainLyrics.isNullOrEmpty()) {
-                        PlainLyricsView(plainLyrics = plainLyrics)
-                    } else {
-                        Text(
-                            text = "No lyrics found",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                    }
-                }
-
-                else -> {}
             }
-        }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(12.dp)
-                .size(40.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                    shape = CircleShape
-                )
-                .clickable(onClick = onCloseLyrics),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Close Lyrics",
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(24.dp)
-            )
+            else -> {}
         }
     }
+}
 }
 
 @Composable
@@ -772,7 +748,6 @@ private fun NowPlaying(
                 lyricsState = lyricsState,
                 seekPosition = seekPosition,
                 trackDurationSec = track.duration,
-                onCloseLyrics = onClickLyricsIcon,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
@@ -795,7 +770,11 @@ fun NowPlayingScreen(
     val baseUrl by mediaControllerViewModel.baseUrl.collectAsState()
 
     BackHandler {
-        navigator.navigateBack()
+        if (playerUiState.showLyrics) {
+            mediaControllerViewModel.onPlayerUiEvent(PlayerUiEvent.OnClickLyricsIcon)
+        } else {
+            navigator.navigateBack()
+        }
     }
 
     NowPlaying(
