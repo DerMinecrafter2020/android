@@ -2,13 +2,10 @@ package com.android.swingmusic.player.presentation.screen
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOutQuad
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,7 +13,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -43,8 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -96,164 +91,6 @@ import ir.mahozad.multiplatform.wavyslider.WaveAnimationSpecs
 import ir.mahozad.multiplatform.wavyslider.WaveDirection
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import java.util.Locale
-
-@Composable
-private fun LyricsView(
-    lyricsState: LyricsState,
-    seekPosition: Float,
-    trackDurationSec: Int,
-    onCloseLyrics: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val currentPositionMs = (seekPosition * trackDurationSec * 1000L).toLong()
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f))
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            when (lyricsState) {
-                is LyricsState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(40.dp),
-                        strokeCap = StrokeCap.Round,
-                        strokeWidth = 2.dp
-                    )
-                }
-
-                is LyricsState.NotFound -> {
-                    Text(
-                        text = "No lyrics found",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                }
-
-                is LyricsState.Error -> {
-                    Text(
-                        text = "Couldn't load lyrics",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                }
-
-                is LyricsState.Success -> {
-                    val syncedLyrics = lyricsState.syncedLyrics
-                    val plainLyrics = lyricsState.plainLyrics
-
-                    if (!syncedLyrics.isNullOrEmpty()) {
-                        SyncedLyricsView(
-                            lines = syncedLyrics,
-                            currentPositionMs = currentPositionMs
-                        )
-                    } else if (!plainLyrics.isNullOrEmpty()) {
-                        PlainLyricsView(plainLyrics = plainLyrics)
-                    } else {
-                        Text(
-                            text = "No lyrics found",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                    }
-                }
-
-                else -> {}
-            }
-        }
-
-        IconButton(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 16.dp, end = 8.dp),
-            onClick = onCloseLyrics
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Close Lyrics",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Composable
-private fun SyncedLyricsView(
-    lines: List<LyricLine>,
-    currentPositionMs: Long
-) {
-    // Find the current lyric line based on position
-    val currentIndex by remember(currentPositionMs) {
-        derivedStateOf {
-            lines.indexOfFirst { it.timeMs > currentPositionMs }.let {
-                if (it == -1) lines.size - 1 else maxOf(0, it - 1)
-            }
-        }
-    }
-
-    val listState = rememberLazyListState()
-
-    LaunchedEffect(currentIndex) {
-        if (currentIndex >= 0 && lines.isNotEmpty()) {
-            val target = (currentIndex - 2).coerceAtLeast(0)
-            if (target < lines.size) {
-                listState.animateScrollToItem(target, scrollOffset = -200)
-            }
-        }
-    }
-
-    LazyColumn(
-        state = listState,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
-        contentPadding = PaddingValues(vertical = 200.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        itemsIndexed(lines) { index, line ->
-            if (line.text.isBlank()) return@itemsIndexed
-            val isCurrent = index == currentIndex
-            Text(
-                text = line.text,
-                style = MaterialTheme.typography.titleLarge,
-                fontSize = if (isCurrent) 28.sp else 18.sp,
-                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                color = if (isCurrent)
-                    MaterialTheme.colorScheme.onSurface
-                else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                textAlign = TextAlign.Center,
-                lineHeight = if (isCurrent) 36.sp else 24.sp,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}
-
-@Composable
-private fun PlainLyricsView(plainLyrics: String) {
-    val listState = rememberLazyListState()
-    LazyColumn(
-        state = listState,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
-        contentPadding = PaddingValues(vertical = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(plainLyrics.lines()) { line ->
-            Text(
-                text = line,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                textAlign = TextAlign.Start
-            )
-        }
-    }
-}
 
 @Composable
 private fun NowPlaying(
@@ -400,376 +237,499 @@ private fun NowPlaying(
                 )
         )
 
-        Column(
+        val scrollState = rememberLazyListState()
+
+        LazyColumn(
+            state = scrollState,
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                // Artwork, SeekBar...
-                HorizontalPager(
+            // ---- Player Section ----
+            item {
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    state = pagerState,
-                    beyondViewportPageCount = 2,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) { page ->
-                    val imageData = if (page == playingTrackIndex) {
-                        "${baseUrl}img/thumbnail/${queue.getOrNull(playingTrackIndex)?.image ?: track.image}"
-                    } else {
-                        "${baseUrl}img/thumbnail/${queue.getOrNull(page)?.image ?: track.image}"
-                    }
-                    val pageOffset = pagerState.calculateCurrentOffsetForPage(page)
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        // Artwork
-                        AsyncImage(
-                            modifier = Modifier
-                                .size(356.dp)
-                                .clip(RoundedCornerShape(7))
-                                .graphicsLayer {
-                                    val scale = lerp(1f, 1.25f, pageOffset)
-                                    scaleX = scale
-                                    scaleY = scale
-                                    clip = true
-                                    shape = RoundedCornerShape(7)
-                                },
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(imageData)
-                                .crossfade(true)
-                                .build(),
-                            placeholder = painterResource(R.drawable.audio_fallback),
-                            fallback = painterResource(R.drawable.audio_fallback),
-                            error = painterResource(R.drawable.audio_fallback),
-                            contentDescription = "Track Image",
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth(.78F)) {
-                        Text(
-                            text = track.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontSize = 18.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                    // Artwork
+                    HorizontalPager(
+                        modifier = Modifier.fillMaxWidth(),
+                        state = pagerState,
+                        beyondViewportPageCount = 2,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) { page ->
+                        val imageData = if (page == playingTrackIndex) {
+                            "${baseUrl}img/thumbnail/${queue.getOrNull(playingTrackIndex)?.image ?: track.image}"
+                        } else {
+                            "${baseUrl}img/thumbnail/${queue.getOrNull(page)?.image ?: track.image}"
+                        }
+                        val pageOffset = pagerState.calculateCurrentOffsetForPage(page)
 
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        LazyRow(modifier = Modifier.fillMaxWidth()) {
-                            track.trackArtists.forEachIndexed { index, trackArtist ->
-                                item {
-                                    Text(
-                                        modifier = Modifier
-                                            .clickable(
-                                                onClick = { onClickArtist(trackArtist.artistHash) },
-                                                indication = null,
-                                                interactionSource = remember { MutableInteractionSource() }
-                                            ),
-                                        text = trackArtist.name,
-                                        maxLines = 1,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = .84F),
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    if (index != track.trackArtists.lastIndex) {
-                                        Text(
-                                            text = ", ",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(
-                                                alpha = .84F
-                                            ),
-                                        )
-                                    }
-                                }
-                            }
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            AsyncImage(
+                                modifier = Modifier
+                                    .size(356.dp)
+                                    .clip(RoundedCornerShape(7))
+                                    .graphicsLayer {
+                                        val scale = lerp(1f, 1.25f, pageOffset)
+                                        scaleX = scale
+                                        scaleY = scale
+                                        clip = true
+                                        shape = RoundedCornerShape(7)
+                                    },
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(imageData)
+                                    .crossfade(true)
+                                    .build(),
+                                placeholder = painterResource(R.drawable.audio_fallback),
+                                fallback = painterResource(R.drawable.audio_fallback),
+                                error = painterResource(R.drawable.audio_fallback),
+                                contentDescription = "Track Image",
+                                contentScale = ContentScale.Crop
+                            )
                         }
                     }
 
-                    IconButton(
-                        modifier = Modifier
-                            .clip(CircleShape),
-                        onClick = {
-                            onToggleFavorite(track.isFavorite, track.trackHash)
-                        }) {
-                        val icon =
-                            if (track.isFavorite) R.drawable.fav_filled
-                            else R.drawable.fav_not_filled
-                        Icon(
-                            painter = painterResource(id = icon),
-                            contentDescription = "Favorite"
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                Column(
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                ) {
-                    WavySlider(
-                        modifier = Modifier.height(12.dp),
-                        value = seekPosition,
-                        onValueChangeFinished = {},
-                        onValueChange = { value ->
-                            onSeekPlayBack(value)
-                        },
-                        waveLength = 32.dp,
-                        waveHeight = if (animateWave) 8.dp else 0.dp,
-                        waveVelocity = 16.dp to WaveDirection.HEAD,
-                        waveThickness = 4.dp,
-                        trackThickness = 4.dp,
-                        incremental = false,
-                        animationSpecs = WaveAnimationSpecs(
-                            waveHeightAnimationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-                            waveVelocityAnimationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing),
-                            waveAppearanceAnimationSpec = tween(durationMillis = 300, easing = EaseOutQuad)
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 4.dp),
+                            .padding(horizontal = 24.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = playbackDuration,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .84F)
-                        )
-                        Text(
-                            text = if (playbackState == PlaybackState.ERROR)
-                                track.duration.formatDuration() else trackDuration,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .84F)
-                        )
-                    }
-                }
+                        Column(modifier = Modifier.fillMaxWidth(.78F)) {
+                            Text(
+                                text = track.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontSize = 18.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    IconButton(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(
-                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .5F)
-                            ), onClick = {
-                            onClickPrev()
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.prev),
-                            contentDescription = "Prev"
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier.clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                            onClick = {
-                                if (playbackState != PlaybackState.ERROR) {
-                                    onTogglePlayerState(playbackState)
-                                } else {
-                                    onResumePlayBackFromError()
+                            LazyRow(modifier = Modifier.fillMaxWidth()) {
+                                track.trackArtists.forEachIndexed { index, trackArtist ->
+                                    item {
+                                        Text(
+                                            modifier = Modifier
+                                                .clickable(
+                                                    onClick = { onClickArtist(trackArtist.artistHash) },
+                                                    indication = null,
+                                                    interactionSource = remember { MutableInteractionSource() }
+                                                ),
+                                            text = trackArtist.name,
+                                            maxLines = 1,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = .84F),
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        if (index != track.trackArtists.lastIndex) {
+                                            Text(
+                                                text = ", ",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                    alpha = .84F
+                                                ),
+                                            )
+                                        }
+                                    }
                                 }
                             }
-                        )
+                        }
+
+                        IconButton(
+                            modifier = Modifier
+                                .clip(CircleShape),
+                            onClick = {
+                                onToggleFavorite(track.isFavorite, track.trackHash)
+                            }) {
+                            val icon =
+                                if (track.isFavorite) R.drawable.fav_filled
+                                else R.drawable.fav_not_filled
+                            Icon(
+                                painter = painterResource(id = icon),
+                                contentDescription = "Favorite"
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    Column(
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     ) {
-                        Box(
-                            modifier = Modifier.wrapContentSize(),
-                            contentAlignment = Alignment.Center
+                        WavySlider(
+                            modifier = Modifier.height(12.dp),
+                            value = seekPosition,
+                            onValueChangeFinished = {},
+                            onValueChange = { value ->
+                                onSeekPlayBack(value)
+                            },
+                            waveLength = 32.dp,
+                            waveHeight = if (animateWave) 8.dp else 0.dp,
+                            waveVelocity = 16.dp to WaveDirection.HEAD,
+                            waveThickness = 4.dp,
+                            trackThickness = 4.dp,
+                            incremental = false,
+                            animationSpecs = WaveAnimationSpecs(
+                                waveHeightAnimationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                                waveVelocityAnimationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing),
+                                waveAppearanceAnimationSpec = tween(durationMillis = 300, easing = EaseOutQuad)
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            if (playbackState == PlaybackState.ERROR) {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(horizontal = 5.dp)
-                                        .size(70.dp),
-                                    painter = painterResource(id = playbackStateIcon),
-                                    tint = if (isBuffering)
-                                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = .25F) else
-                                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = .75F),
-                                    contentDescription = "Error state"
-                                )
-                            } else {
-                                Box(
-                                    modifier = Modifier
-                                        .height(70.dp)
-                                        .width(80.dp)
-                                        .clip(RoundedCornerShape(32))
-                                        .background(MaterialTheme.colorScheme.secondaryContainer),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                            Text(
+                                text = playbackDuration,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .84F)
+                            )
+                            Text(
+                                text = if (playbackState == PlaybackState.ERROR)
+                                    track.duration.formatDuration() else trackDuration,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .84F)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        IconButton(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(
+                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .5F)
+                                ), onClick = {
+                                onClickPrev()
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.prev),
+                                contentDescription = "Prev"
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier.clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                                onClick = {
+                                    if (playbackState != PlaybackState.ERROR) {
+                                        onTogglePlayerState(playbackState)
+                                    } else {
+                                        onResumePlayBackFromError()
+                                    }
+                                }
+                            )
+                        ) {
+                            Box(
+                                modifier = Modifier.wrapContentSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (playbackState == PlaybackState.ERROR) {
                                     Icon(
-                                        modifier = Modifier.size(44.dp),
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier
+                                            .padding(horizontal = 5.dp)
+                                            .size(70.dp),
                                         painter = painterResource(id = playbackStateIcon),
-                                        contentDescription = "Play/Pause"
+                                        tint = if (isBuffering)
+                                            MaterialTheme.colorScheme.onErrorContainer.copy(alpha = .25F) else
+                                            MaterialTheme.colorScheme.onErrorContainer.copy(alpha = .75F),
+                                        contentDescription = "Error state"
+                                    )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .height(70.dp)
+                                            .width(80.dp)
+                                            .clip(RoundedCornerShape(32))
+                                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(44.dp),
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            painter = painterResource(id = playbackStateIcon),
+                                            contentDescription = "Play/Pause"
+                                        )
+                                    }
+                                }
+
+                                if (isBuffering) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(50.dp),
+                                        strokeCap = StrokeCap.Round,
+                                        strokeWidth = 1.dp,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 }
                             }
+                        }
 
-                            if (isBuffering) {
+                        IconButton(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(
+                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .5F)
+                                ), onClick = {
+                                onClickNext()
+                            }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.next),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                contentDescription = "Next"
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Bitrate, Track format
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(24))
+                            .background(
+                                if (isDarkTheme) fileTypeTextColor.copy(alpha = .075F) else fileTypeBadgeColor
+                            )
+                            .wrapContentSize()
+                            .padding(8.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = fileType,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = fileTypeTextColor
+                            )
+
+                            Text(
+                                text = " • ",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = fileTypeTextColor
+                            )
+
+                            Text(
+                                text = "${track.bitrate} Kbps",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = fileTypeTextColor
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Navigation and Control Icons
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                            .background(MaterialTheme.colorScheme.inverseOnSurface)
+                            .navigationBarsPadding()
+                            .padding(vertical = 12.dp, horizontal = 32.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = {
+                            onClickLyricsIcon()
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.lyrics_icon),
+                                tint = if (showLyrics)
+                                    MaterialTheme.colorScheme.onSurface
+                                else
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = .3F),
+                                contentDescription = "Lyrics"
+                            )
+                        }
+
+                        IconButton(onClick = {
+                            onToggleRepeatMode(repeatMode)
+                        }) {
+                            Icon(
+                                painter = painterResource(id = repeatModeIcon),
+                                tint = if (repeatMode == RepeatMode.REPEAT_OFF)
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = .3F)
+                                else MaterialTheme.colorScheme.onSurface,
+                                contentDescription = "Repeat"
+                            )
+                        }
+
+                        IconButton(onClick = {
+                            onClickQueueIcon()
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.play_list),
+                                contentDescription = "Queue"
+                            )
+                        }
+
+                        IconButton(onClick = {
+                            onToggleShuffleMode(shuffleMode)
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.shuffle),
+                                tint = if (shuffleMode == ShuffleMode.SHUFFLE_OFF)
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = .3F)
+                                else MaterialTheme.colorScheme.onSurface,
+                                contentDescription = "Shuffle"
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ---- Lyrics Section (scroll down to see) ----
+            if (showLyrics) {
+                val currentPositionMs = (seekPosition * track.duration * 1000L).toLong()
+
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = "Lyrics",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                when (lyricsState) {
+                    is LyricsState.Loading -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(50.dp),
+                                    modifier = Modifier.size(40.dp),
                                     strokeCap = StrokeCap.Round,
-                                    strokeWidth = 1.dp,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    strokeWidth = 2.dp
                                 )
                             }
                         }
                     }
 
-                    IconButton(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(
-                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .5F)
-                            ), onClick = {
-                            onClickNext()
-                        }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.next),
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            contentDescription = "Next"
-                        )
+                    is LyricsState.NotFound -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No lyrics found",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
                     }
+
+                    is LyricsState.Error -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Couldn't load lyrics",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
+                    }
+
+                    is LyricsState.Success -> {
+                        val syncedLyrics = lyricsState.syncedLyrics
+                        val plainLyrics = lyricsState.plainLyrics
+
+                        if (!syncedLyrics.isNullOrEmpty()) {
+                            val currentIndex = syncedLyrics.indexOfFirst { it.timeMs > currentPositionMs }.let {
+                                if (it == -1) syncedLyrics.size - 1 else maxOf(0, it - 1)
+                            }
+
+                            itemsIndexed(syncedLyrics) { index, line ->
+                                if (line.text.isBlank()) return@itemsIndexed
+                                val isCurrent = index == currentIndex
+                                Text(
+                                    text = line.text,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontSize = if (isCurrent) 28.sp else 18.sp,
+                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isCurrent)
+                                        MaterialTheme.colorScheme.onSurface
+                                    else
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = if (isCurrent) 36.sp else 24.sp,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 24.dp, vertical = 12.dp)
+                                )
+                            }
+                        } else if (!plainLyrics.isNullOrEmpty()) {
+                            items(plainLyrics.lines()) { line ->
+                                Text(
+                                    text = line,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 24.dp, vertical = 6.dp)
+                                )
+                            }
+                        } else {
+                            item {
+                                Text(
+                                    text = "No lyrics found",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
+                    }
+
+                    else -> {}
                 }
 
-            }
-            // Bitrate, Track format
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(24))
-                    .background(
-                        if (isDarkTheme) fileTypeTextColor.copy(alpha = .075F) else fileTypeBadgeColor
-                    )
-                    .wrapContentSize()
-                    .padding(8.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = fileType,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = fileTypeTextColor
-                    )
-
-                    Text(
-                        text = " • ",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = fileTypeTextColor
-                    )
-
-                    Text(
-                        text = "${track.bitrate} Kbps",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = fileTypeTextColor
-                    )
-                }
-            }
-
-            // Navigation and Control Icons
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                    .background(MaterialTheme.colorScheme.inverseOnSurface)
-                    .navigationBarsPadding()
-                    .padding(vertical = 12.dp, horizontal = 32.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(onClick = {
-                    onClickLyricsIcon()
-                }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.lyrics_icon),
-                        tint = if (showLyrics)
-                            MaterialTheme.colorScheme.onSurface
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = .3F),
-                        contentDescription = "Lyrics"
-                    )
-                }
-
-                IconButton(onClick = {
-                    onToggleRepeatMode(repeatMode)
-                }) {
-                    Icon(
-                        painter = painterResource(id = repeatModeIcon),
-                        tint = if (repeatMode == RepeatMode.REPEAT_OFF)
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = .3F)
-                        else MaterialTheme.colorScheme.onSurface,
-                        contentDescription = "Repeat"
-                    )
-                }
-
-                IconButton(onClick = {
-                    onClickQueueIcon()
-                }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.play_list),
-                        contentDescription = "Queue"
-                    )
-                }
-
-                IconButton(onClick = {
-                    onToggleShuffleMode(shuffleMode)
-                }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.shuffle),
-                        tint = if (shuffleMode == ShuffleMode.SHUFFLE_OFF)
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = .3F)
-                        else MaterialTheme.colorScheme.onSurface,
-                        contentDescription = "Shuffle"
-                    )
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
-        }
-
-        // Lyrics overlay
-        if (showLyrics) {
-            LyricsView(
-                lyricsState = lyricsState,
-                seekPosition = seekPosition,
-                trackDurationSec = track.duration,
-                onCloseLyrics = onClickLyricsIcon,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            )
         }
     }
 }
