@@ -25,10 +25,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(System.getenv("KEYSTORE_FILE") ?: "release-key.keystore")
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("KEY_ALIAS")
-            keyPassword = System.getenv("KEY_PASSWORD")
+            storeFile = file("release-key.keystore")
+            storePassword = "swingmusic2024"
+            keyAlias = "swingmusic"
+            keyPassword = "swingmusic2024"
         }
     }
 
