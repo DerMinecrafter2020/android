@@ -102,6 +102,7 @@ private fun LyricsView(
     lyricsState: LyricsState,
     seekPosition: Float,
     trackDurationSec: Int,
+    onCloseLyrics: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val currentPositionMs = (seekPosition * trackDurationSec * 1000L).toLong()
@@ -109,58 +110,74 @@ private fun LyricsView(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)),
-        contentAlignment = Alignment.Center
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f))
     ) {
-        when (lyricsState) {
-            is LyricsState.Loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(40.dp),
-                    strokeCap = StrokeCap.Round,
-                    strokeWidth = 2.dp
-                )
-            }
-
-            is LyricsState.NotFound -> {
-                Text(
-                    text = "No lyrics found",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
-
-            is LyricsState.Error -> {
-                Text(
-                    text = "Couldn't load lyrics",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
-
-            is LyricsState.Success -> {
-                val syncedLyrics = lyricsState.syncedLyrics
-                val plainLyrics = lyricsState.plainLyrics
-
-                if (!syncedLyrics.isNullOrEmpty()) {
-                    SyncedLyricsView(
-                        lines = syncedLyrics,
-                        currentPositionMs = currentPositionMs
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            when (lyricsState) {
+                is LyricsState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(40.dp),
+                        strokeCap = StrokeCap.Round,
+                        strokeWidth = 2.dp
                     )
-                } else if (!plainLyrics.isNullOrEmpty()) {
-                    PlainLyricsView(plainLyrics = plainLyrics)
-                } else {
+                }
+
+                is LyricsState.NotFound -> {
                     Text(
                         text = "No lyrics found",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 }
-            }
 
-            else -> {}
+                is LyricsState.Error -> {
+                    Text(
+                        text = "Couldn't load lyrics",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
+
+                is LyricsState.Success -> {
+                    val syncedLyrics = lyricsState.syncedLyrics
+                    val plainLyrics = lyricsState.plainLyrics
+
+                    if (!syncedLyrics.isNullOrEmpty()) {
+                        SyncedLyricsView(
+                            lines = syncedLyrics,
+                            currentPositionMs = currentPositionMs
+                        )
+                    } else if (!plainLyrics.isNullOrEmpty()) {
+                        PlainLyricsView(plainLyrics = plainLyrics)
+                    } else {
+                        Text(
+                            text = "No lyrics found",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+
+                else -> {}
+            }
+        }
+
+        IconButton(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 16.dp, end = 8.dp),
+            onClick = onCloseLyrics
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close Lyrics",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
-}
 }
 
 @Composable
@@ -748,6 +765,7 @@ private fun NowPlaying(
                 lyricsState = lyricsState,
                 seekPosition = seekPosition,
                 trackDurationSec = track.duration,
+                onCloseLyrics = onClickLyricsIcon,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
