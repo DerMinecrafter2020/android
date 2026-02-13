@@ -768,9 +768,14 @@ fun NowPlayingScreen(
 ) {
     val playerUiState by mediaControllerViewModel.playerUiState.collectAsState()
     val baseUrl by mediaControllerViewModel.baseUrl.collectAsState()
-    val showLyrics = playerUiState.showLyrics
+    var lyricsOpen by remember { mutableStateOf(playerUiState.showLyrics) }
 
-    BackHandler(enabled = showLyrics) {
+    LaunchedEffect(playerUiState.showLyrics) {
+        lyricsOpen = playerUiState.showLyrics
+    }
+
+    BackHandler(enabled = lyricsOpen) {
+        lyricsOpen = false
         mediaControllerViewModel.onPlayerUiEvent(PlayerUiEvent.OnClickLyricsIcon)
     }
 
