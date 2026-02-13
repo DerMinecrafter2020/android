@@ -18,5 +18,7 @@ data class PlayerUiState(
     val isBuffering: Boolean = false,
     val repeatMode: RepeatMode = RepeatMode.REPEAT_ALL,
     val shuffleMode: ShuffleMode = ShuffleMode.SHUFFLE_OFF,
-    val isPartialQueue: Boolean = false
+    val isPartialQueue: Boolean = false,
+    val showLyrics: Boolean = false,
+    val lyricsState: LyricsState = LyricsState.Idle
 )

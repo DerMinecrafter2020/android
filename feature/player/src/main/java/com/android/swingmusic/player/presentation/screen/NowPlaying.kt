@@ -1,10 +1,13 @@
 package com.android.swingmusic.player.presentation.screen
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOutQuad
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,6 +15,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -23,7 +27,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -54,6 +62,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -64,6 +73,7 @@ import androidx.compose.ui.util.lerp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.android.swingmusic.common.presentation.navigator.CommonNavigator
+import com.android.swingmusic.core.domain.model.LyricLine
 import com.android.swingmusic.core.domain.model.Track
 import com.android.swingmusic.core.domain.model.TrackArtist
 import com.android.swingmusic.core.domain.util.PlaybackState
@@ -71,6 +81,7 @@ import com.android.swingmusic.core.domain.util.RepeatMode
 import com.android.swingmusic.core.domain.util.ShuffleMode
 import com.android.swingmusic.player.presentation.event.PlayerUiEvent
 import com.android.swingmusic.player.presentation.event.QueueEvent
+import com.android.swingmusic.player.presentation.state.LyricsState
 import com.android.swingmusic.player.presentation.util.calculateCurrentOffsetForPage
 import com.android.swingmusic.player.presentation.viewmodel.MediaControllerViewModel
 import com.android.swingmusic.uicomponent.R
@@ -82,6 +93,148 @@ import ir.mahozad.multiplatform.wavyslider.WaveAnimationSpecs
 import ir.mahozad.multiplatform.wavyslider.WaveDirection
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import java.util.Locale
+
+@Composable
+private fun LyricsView(
+    lyricsState: LyricsState,
+    seekPosition: Float,
+    trackDurationSec: Int,
+    modifier: Modifier = Modifier
+) {
+    val currentPositionMs = (seekPosition * trackDurationSec * 1000L).toLong()
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)),
+        contentAlignment = Alignment.Center
+    ) {
+        when (lyricsState) {
+            is LyricsState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp),
+                    strokeCap = StrokeCap.Round,
+                    strokeWidth = 2.dp
+                )
+            }
+
+            is LyricsState.NotFound -> {
+                Text(
+                    text = "No lyrics found",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+
+            is LyricsState.Error -> {
+                Text(
+                    text = "Couldn't load lyrics",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+
+            is LyricsState.Success -> {
+                val syncedLyrics = lyricsState.syncedLyrics
+                val plainLyrics = lyricsState.plainLyrics
+
+                if (!syncedLyrics.isNullOrEmpty()) {
+                    SyncedLyricsView(
+                        lines = syncedLyrics,
+                        currentPositionMs = currentPositionMs
+                    )
+                } else if (!plainLyrics.isNullOrEmpty()) {
+                    PlainLyricsView(plainLyrics = plainLyrics)
+                } else {
+                    Text(
+                        text = "No lyrics found",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
+            else -> {}
+        }
+    }
+}
+
+@Composable
+private fun SyncedLyricsView(
+    lines: List<LyricLine>,
+    currentPositionMs: Long
+) {
+    val currentIndex by remember(currentPositionMs) {
+        derivedStateOf {
+            var idx = 0
+            for (i in lines.indices) {
+                if (lines[i].timeMs <= currentPositionMs) {
+                    idx = i
+                } else {
+                    break
+                }
+            }
+            idx
+        }
+    }
+
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(currentIndex) {
+        if (currentIndex >= 0 && lines.isNotEmpty()) {
+            val target = (currentIndex - 2).coerceAtLeast(0)
+            listState.animateScrollToItem(target)
+        }
+    }
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        contentPadding = PaddingValues(vertical = 120.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        itemsIndexed(lines) { index, line ->
+            if (line.text.isBlank()) return@itemsIndexed
+            val isCurrent = index == currentIndex
+            Text(
+                text = line.text,
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = if (isCurrent) 26.sp else 20.sp,
+                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                color = if (isCurrent)
+                    MaterialTheme.colorScheme.onSurface
+                else
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                textAlign = TextAlign.Start,
+                lineHeight = if (isCurrent) 34.sp else 28.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlainLyricsView(plainLyrics: String) {
+    val listState = rememberLazyListState()
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        contentPadding = PaddingValues(vertical = 120.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(plainLyrics.lines()) { line ->
+            Text(
+                text = line,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                textAlign = TextAlign.Start
+            )
+        }
+    }
+}
 
 @Composable
 private fun NowPlaying(
@@ -96,6 +249,8 @@ private fun NowPlaying(
     repeatMode: RepeatMode,
     shuffleMode: ShuffleMode,
     baseUrl: String,
+    showLyrics: Boolean,
+    lyricsState: LyricsState,
     onPageSelect: (page: Int) -> Unit,
     onClickArtist: (artistHash: String) -> Unit,
     onToggleRepeatMode: (RepeatMode) -> Unit,
@@ -171,7 +326,7 @@ private fun NowPlaying(
 
         snapshotFlow { pagerState.currentPage }.collect { page ->
             if (isInitialComposition) {
-                isInitialComposition = false // Skip the first run
+                isInitialComposition = false
             } else {
                 if (playingTrackIndex != page) {
                     onPageSelect(page)
@@ -352,7 +507,6 @@ private fun NowPlaying(
                 Column(
                     modifier = Modifier.padding(horizontal = 24.dp)
                 ) {
-                    // TODO: Only seek playback onValueChangeFinished
                     WavySlider(
                         modifier = Modifier.height(12.dp),
                         value = seekPosition,
@@ -538,15 +692,18 @@ private fun NowPlaying(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // TODO: Return this when lyrics is ready
-                /*IconButton(onClick = {
+                IconButton(onClick = {
                     onClickLyricsIcon()
                 }) {
                     Icon(
                         painter = painterResource(id = R.drawable.lyrics_icon),
+                        tint = if (showLyrics)
+                            MaterialTheme.colorScheme.onSurface
+                        else
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = .3F),
                         contentDescription = "Lyrics"
                     )
-                }*/
+                }
 
                 IconButton(onClick = {
                     onToggleRepeatMode(repeatMode)
@@ -580,17 +737,21 @@ private fun NowPlaying(
                         contentDescription = "Shuffle"
                     )
                 }
-
-                // TODO: Return this when contextual menu is ready
-                /*IconButton(onClick = {
-                    onClickMore()
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More"
-                    )
-                }*/
             }
+        }
+
+        // Lyrics overlay
+        AnimatedVisibility(
+            visible = showLyrics,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
+            LyricsView(
+                lyricsState = lyricsState,
+                seekPosition = seekPosition,
+                trackDurationSec = track.duration,
+                modifier = Modifier.padding(paddingValues)
+            )
         }
     }
 }
@@ -620,8 +781,9 @@ fun NowPlayingScreen(
         shuffleMode = playerUiState.shuffleMode,
         isBuffering = playerUiState.isBuffering,
         baseUrl = baseUrl ?: "",
+        showLyrics = playerUiState.showLyrics,
+        lyricsState = playerUiState.lyricsState,
         onPageSelect = { page ->
-            // treat this as clicking a track in queue
             mediaControllerViewModel.onQueueEvent(
                 QueueEvent.SeekToQueueItem(page)
             )
@@ -720,7 +882,7 @@ fun FullPlayerPreview() {
         albumHash = "albumHash123",
         trackArtists = artists,
         bitrate = 320,
-        duration = 454, // Sample duration in seconds
+        duration = 454,
         filepath = "/path/to/track.mp3",
         folder = "/path/to/folder",
         image = "/path/to/album/artwork.jpg",
@@ -744,6 +906,8 @@ fun FullPlayerPreview() {
             repeatMode = RepeatMode.REPEAT_OFF,
             shuffleMode = ShuffleMode.SHUFFLE_OFF,
             baseUrl = "",
+            showLyrics = false,
+            lyricsState = LyricsState.Idle,
             onPageSelect = {},
             onClickArtist = {},
             onToggleRepeatMode = {},

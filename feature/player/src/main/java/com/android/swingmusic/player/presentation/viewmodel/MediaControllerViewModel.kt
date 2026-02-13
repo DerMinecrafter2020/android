@@ -31,6 +31,7 @@ import com.android.swingmusic.player.presentation.event.PlayerUiEvent.OnToggleFa
 import com.android.swingmusic.player.presentation.event.PlayerUiEvent.OnTogglePlayerState
 import com.android.swingmusic.player.presentation.event.PlayerUiEvent.OnToggleRepeatMode
 import com.android.swingmusic.player.presentation.event.QueueEvent
+import com.android.swingmusic.player.presentation.state.LyricsState
 import com.android.swingmusic.player.presentation.state.PlayerUiState
 import com.android.swingmusic.uicomponent.presentation.util.formatDuration
 import com.google.common.util.concurrent.ListenableFuture
@@ -642,6 +643,44 @@ class MediaControllerViewModel @Inject constructor(
         }
     }
 
+    private fun fetchLyrics(track: Track?) {
+        track ?: return
+        viewModelScope.launch {
+            val artist = track.trackArtists.firstOrNull()?.name ?: ""
+            pLayerRepository.getLyrics(
+                title = track.title,
+                artist = artist,
+                album = track.album,
+                duration = track.duration
+            ).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        _playerUiState.value = _playerUiState.value.copy(
+                            lyricsState = LyricsState.Loading
+                        )
+                    }
+                    is Resource.Success -> {
+                        val (synced, plain) = resource.data ?: Pair(null, null)
+                        _playerUiState.value = _playerUiState.value.copy(
+                            lyricsState = LyricsState.Success(
+                                syncedLyrics = synced,
+                                plainLyrics = plain
+                            )
+                        )
+                    }
+                    is Resource.Error -> {
+                        val state = if (resource.message == "NOT_FOUND") {
+                            LyricsState.NotFound
+                        } else {
+                            LyricsState.Error(resource.message ?: "Unknown error")
+                        }
+                        _playerUiState.value = _playerUiState.value.copy(lyricsState = state)
+                    }
+                }
+            }
+        }
+    }
+
     fun onPlayerUiEvent(event: PlayerUiEvent) {
         mediaController?.let { controller ->
             when (event) {
@@ -740,7 +779,13 @@ class MediaControllerViewModel @Inject constructor(
                     toggleTrackFavorite(event.trackHash, event.isFavorite)
                 }
 
-                is OnClickLyricsIcon -> {}
+                is OnClickLyricsIcon -> {
+                    val showLyrics = !_playerUiState.value.showLyrics
+                    _playerUiState.value = _playerUiState.value.copy(showLyrics = showLyrics)
+                    if (showLyrics && _playerUiState.value.lyricsState == LyricsState.Idle) {
+                        fetchLyrics(_playerUiState.value.nowPlayingTrack)
+                    }
+                }
 
                 is OnToggleRepeatMode -> {
                     val repeatMode = _playerUiState.value.repeatMode
@@ -1031,8 +1076,13 @@ class MediaControllerViewModel @Inject constructor(
                     _playerUiState.value = _playerUiState.value.copy(
                         playingTrackIndex = trackIndex,
                         nowPlayingTrack = playingTrack,
-                        trackDuration = playingTrack.duration.formatDuration()
+                        trackDuration = playingTrack.duration.formatDuration(),
+                        lyricsState = LyricsState.Idle
                     )
+
+                    if (_playerUiState.value.showLyrics) {
+                        fetchLyrics(playingTrack)
+                    }
 
                     if (trackToLog != null && durationPlayedSec >= 5L) {
                         logRecentlyPlayedTrackToServer(

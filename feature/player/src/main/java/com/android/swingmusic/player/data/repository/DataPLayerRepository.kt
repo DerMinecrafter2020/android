@@ -7,6 +7,7 @@ import com.android.swingmusic.core.data.dto.FoldersAndTracksRequestDto
 import com.android.swingmusic.core.data.mapper.Map.toModel
 import com.android.swingmusic.core.data.mapper.Map.toTrack
 import com.android.swingmusic.core.data.util.Resource
+import com.android.swingmusic.core.domain.model.LyricLine
 import com.android.swingmusic.core.domain.model.Track
 import com.android.swingmusic.core.domain.util.QueueSource
 import com.android.swingmusic.database.data.dao.LastPlayedTrackDao
@@ -14,6 +15,7 @@ import com.android.swingmusic.database.data.dao.QueueDao
 import com.android.swingmusic.database.data.mapper.toEntity
 import com.android.swingmusic.database.data.mapper.toModel
 import com.android.swingmusic.database.domain.model.LastPlayedTrack
+import com.android.swingmusic.network.data.api.service.LyricsApiService
 import com.android.swingmusic.network.data.api.service.NetworkApiService
 import com.android.swingmusic.network.data.dto.ToggleFavoriteRequest
 import com.android.swingmusic.network.data.mapper.toDto
@@ -31,6 +33,7 @@ class DataPLayerRepository @Inject constructor(
     private val queueDao: QueueDao,
     private val lastPlayedTrackDao: LastPlayedTrackDao,
     private val networkApiService: NetworkApiService,
+    private val lyricsApiService: LyricsApiService,
     private val authRepository: AuthRepository
 ) : PLayerRepository {
 
@@ -111,7 +114,7 @@ class DataPLayerRepository @Inject constructor(
                     bearerToken = "Bearer $accessToken"
                 )
 
-                emit(Resource.Success(data = true)) // isFavorite = true
+                emit(Resource.Success(data = true))
 
             } catch (e: HttpException) {
                 emit(Resource.Error(message = "FAILED TO ADD TRACK TO FAVORITE"))
@@ -135,7 +138,7 @@ class DataPLayerRepository @Inject constructor(
                     toggleFavoriteRequest = ToggleFavoriteRequest(hash = trackHash, type = "track"),
                     bearerToken = "Bearer $accessToken"
                 )
-                emit(Resource.Success(data = false)) // isFavorite = false
+                emit(Resource.Success(data = false))
 
             } catch (e: HttpException) {
                 emit(Resource.Error(message = "FAILED TO REMOVE TRACK FROM FAVORITE"))
@@ -173,5 +176,57 @@ class DataPLayerRepository @Inject constructor(
             Timber.e("Error fetching tracks chunk: $e")
             emptyList()
         }
+    }
+
+    override suspend fun getLyrics(
+        title: String,
+        artist: String,
+        album: String,
+        duration: Int
+    ): Flow<Resource<Pair<List<LyricLine>?, String?>>> {
+        return flow {
+            try {
+                emit(Resource.Loading())
+
+                val response = lyricsApiService.getLyrics(
+                    trackName = title,
+                    artistName = artist,
+                    albumName = album,
+                    duration = duration
+                )
+
+                val syncedLyrics = response.syncedLyrics?.let { parseLrc(it) }
+                val plainLyrics = response.plainLyrics
+
+                emit(Resource.Success(data = Pair(syncedLyrics, plainLyrics)))
+
+            } catch (e: HttpException) {
+                if (e.code() == 404) {
+                    emit(Resource.Error(message = "NOT_FOUND"))
+                } else {
+                    emit(Resource.Error(message = "Network error fetching lyrics"))
+                }
+            } catch (e: Exception) {
+                emit(Resource.Error(message = "Error fetching lyrics: ${e.message}"))
+            }
+        }
+    }
+
+    private fun parseLrc(lrc: String): List<LyricLine> {
+        val regex = Regex("""^\[(\d{2}):(\d{2})\.(\d{2,3})](.*)$""")
+        return lrc.lines()
+            .mapNotNull { line ->
+                regex.matchEntire(line.trim())?.let { match ->
+                    val minutes = match.groupValues[1].toLong()
+                    val seconds = match.groupValues[2].toLong()
+                    val centisStr = match.groupValues[3]
+                    val centis = centisStr.toLong()
+                    val millis = if (centisStr.length == 2) centis * 10 else centis
+                    val timeMs = minutes * 60_000L + seconds * 1_000L + millis
+                    val text = match.groupValues[4].trim()
+                    LyricLine(timeMs = timeMs, text = text)
+                }
+            }
+            .sortedBy { it.timeMs }
     }
 }

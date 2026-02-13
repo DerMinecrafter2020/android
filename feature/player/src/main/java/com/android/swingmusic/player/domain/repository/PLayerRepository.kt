@@ -1,6 +1,7 @@
 package com.android.swingmusic.player.domain.repository
 
 import com.android.swingmusic.core.data.util.Resource
+import com.android.swingmusic.core.domain.model.LyricLine
 import com.android.swingmusic.core.domain.model.Track
 import com.android.swingmusic.core.domain.util.QueueSource
 import com.android.swingmusic.database.domain.model.LastPlayedTrack
@@ -30,4 +31,11 @@ interface PLayerRepository {
     suspend fun removeTrackFromFavorite(trackHash: String): Flow<Resource<Boolean>>
 
     suspend fun getTracksChunk(folderPath: String, start: Int, limit: Int): List<Track>
+
+    suspend fun getLyrics(
+        title: String,
+        artist: String,
+        album: String,
+        duration: Int
+    ): Flow<Resource<Pair<List<LyricLine>?, String?>>>
 }
