@@ -165,16 +165,23 @@ private fun LyricsView(
             }
         }
 
-        IconButton(
+        Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(16.dp),
-            onClick = onCloseLyrics
+                .padding(12.dp)
+                .size(40.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                    shape = CircleShape
+                )
+                .clickable(onClick = onCloseLyrics),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "Close Lyrics",
-                tint = MaterialTheme.colorScheme.onSurface
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(24.dp)
             )
         }
     }
