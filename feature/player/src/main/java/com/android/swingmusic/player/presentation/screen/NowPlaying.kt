@@ -1,6 +1,7 @@
 package com.android.swingmusic.player.presentation.screen
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOutQuad
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -768,6 +769,10 @@ fun NowPlayingScreen(
 ) {
     val playerUiState by mediaControllerViewModel.playerUiState.collectAsState()
     val baseUrl by mediaControllerViewModel.baseUrl.collectAsState()
+
+    BackHandler {
+        navigator.navigateBack()
+    }
 
     NowPlaying(
         track = playerUiState.nowPlayingTrack,
