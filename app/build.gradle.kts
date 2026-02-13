@@ -71,6 +71,7 @@ dependencies {
     // Local Modules
     implementation(project(":auth"))
     implementation(project(":core"))
+    implementation(project(":database"))
     implementation(project(":network"))
     implementation(project(":uicomponent"))
     // Feature Modules
@@ -80,6 +81,7 @@ dependencies {
     implementation(project(":feature:artist"))
     implementation(project(":feature:album"))
     implementation(project(":feature:search"))
+    implementation(project(":feature:settings"))
     // Common Feature
     implementation(project(":feature:common"))
 

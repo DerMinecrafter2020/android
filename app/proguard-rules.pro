@@ -11,11 +11,9 @@
 -keep class com.google.gson.annotations.** { *; }
 -dontwarn com.google.gson.**
 
-# Keep core classes for Retrofit
--keep class com.android.swingmusic.auth.** { *; }
--keep class com.android.swingmusic.core.** { *; }
--keep class com.android.swingmusic.network.** { *; }
--keep class com.android.swingmusic.database.** { *; }
+# Keep all app classes
+-keep class com.android.swingmusic.** { *; }
+-dontwarn com.android.swingmusic.**
 
 # Timber - strip logging calls from release builds
 -assumenosideeffects class timber.log.Timber* {
