@@ -768,13 +768,10 @@ fun NowPlayingScreen(
 ) {
     val playerUiState by mediaControllerViewModel.playerUiState.collectAsState()
     val baseUrl by mediaControllerViewModel.baseUrl.collectAsState()
+    val showLyrics = playerUiState.showLyrics
 
-    BackHandler {
-        if (playerUiState.showLyrics) {
-            mediaControllerViewModel.onPlayerUiEvent(PlayerUiEvent.OnClickLyricsIcon)
-        } else {
-            navigator.navigateBack()
-        }
+    BackHandler(enabled = showLyrics) {
+        mediaControllerViewModel.onPlayerUiEvent(PlayerUiEvent.OnClickLyricsIcon)
     }
 
     NowPlaying(
