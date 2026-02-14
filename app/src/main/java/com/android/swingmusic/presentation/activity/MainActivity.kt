@@ -53,6 +53,7 @@ import com.android.swingmusic.auth.presentation.viewmodel.AuthViewModel
 import com.android.swingmusic.folder.presentation.event.FolderUiEvent
 import com.android.swingmusic.folder.presentation.screen.destinations.FoldersAndTracksScreenDestination
 import com.android.swingmusic.folder.presentation.viewmodel.FoldersViewModel
+import com.android.swingmusic.home.presentation.destinations.HomeDestination
 import com.android.swingmusic.player.presentation.screen.MiniPlayer
 import com.android.swingmusic.player.presentation.screen.destinations.NowPlayingScreenDestination
 import com.android.swingmusic.player.presentation.screen.destinations.QueueScreenDestination
@@ -145,7 +146,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isUserLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
-            val startPage by settingsRepository.startPage.collectAsState(initial = com.android.swingmusic.settings.domain.model.StartPage.FOLDERS)
+            val startPage by settingsRepository.startPage.collectAsState(initial = com.android.swingmusic.settings.domain.model.StartPage.HOME)
 
             val playerState = mediaControllerViewModel.playerUiState.collectAsState()
 
@@ -164,7 +165,7 @@ class MainActivity : ComponentActivity() {
                 route != null && newBackStackEntry?.destination() !in hideForDestination
 
             val bottomNavItems: List<BottomNavItem> = listOf(
-                // BottomNavItem.Home,
+                BottomNavItem.Home,
                 BottomNavItem.Folder,
                 BottomNavItem.Album,
                 BottomNavItem.Artist,
@@ -174,7 +175,7 @@ class MainActivity : ComponentActivity() {
 
             // Map of BottomNavItem to their route prefixes
             val bottomNavRoutePrefixes = mapOf(
-                // BottomNavItem.Home to listOf(HomeDestination.route),
+                BottomNavItem.Home to listOf(HomeDestination.route),
                 BottomNavItem.Folder to listOf(FoldersAndTracksScreenDestination.route),
                 BottomNavItem.Album to listOf(
                     AllAlbumScreenDestination.route,

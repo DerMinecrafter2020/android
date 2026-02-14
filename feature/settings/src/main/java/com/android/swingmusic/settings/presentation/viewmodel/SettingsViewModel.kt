@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 data class SettingsUiState(
     val autoUpdateEnabled: Boolean = false,
-    val startPage: StartPage = StartPage.FOLDERS,
+    val startPage: StartPage = StartPage.HOME,
     val showLyrics: Boolean = false
 )
 

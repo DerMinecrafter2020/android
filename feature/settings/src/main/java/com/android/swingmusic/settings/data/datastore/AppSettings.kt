@@ -84,7 +84,7 @@ class AppSettings @Inject constructor(
     }
     
     val getStartPage: Flow<String> = context.dataStore.data.map {
-        it[START_PAGE] ?: "FOLDERS"
+        it[START_PAGE] ?: "HOME"
     }
 
     val getShowLyrics: Flow<Boolean> = context.dataStore.data.map {

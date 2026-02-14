@@ -158,6 +158,7 @@ fun SettingsScreen(
                     ) {
                         Text(
                             text = when (uiState.startPage) {
+                                StartPage.HOME -> "Home"
                                 StartPage.FOLDERS -> "Folders"
                                 StartPage.ALBUMS -> "Albums"
                                 StartPage.ARTISTS -> "Artists"
@@ -177,6 +178,13 @@ fun SettingsScreen(
                     expanded = showStartPageMenu,
                     onDismissRequest = { showStartPageMenu = false }
                 ) {
+                    DropdownMenuItem(
+                        text = { Text("Home") },
+                        onClick = {
+                            viewModel.setStartPage(StartPage.HOME)
+                            showStartPageMenu = false
+                        }
+                    )
                     DropdownMenuItem(
                         text = { Text("Folders") },
                         onClick = {
