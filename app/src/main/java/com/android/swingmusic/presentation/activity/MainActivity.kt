@@ -57,6 +57,7 @@ import com.android.swingmusic.player.presentation.screen.MiniPlayer
 import com.android.swingmusic.player.presentation.screen.destinations.NowPlayingScreenDestination
 import com.android.swingmusic.player.presentation.screen.destinations.QueueScreenDestination
 import com.android.swingmusic.player.presentation.viewmodel.MediaControllerViewModel
+import com.android.swingmusic.playlist.presentation.screen.destinations.PlaylistsScreenDestination
 import com.android.swingmusic.presentation.navigator.BottomNavItem
 import com.android.swingmusic.presentation.navigator.CoreNavigator
 import com.android.swingmusic.presentation.navigator.NavGraphs
@@ -164,9 +165,9 @@ class MainActivity : ComponentActivity() {
                 // BottomNavItem.Home,
                 BottomNavItem.Folder,
                 BottomNavItem.Album,
-                // BottomNavItem.Playlist,
                 BottomNavItem.Artist,
                 BottomNavItem.Search,
+                BottomNavItem.Playlist,
                 BottomNavItem.Settings,
             )
 
@@ -187,6 +188,7 @@ class MainActivity : ComponentActivity() {
                     SearchScreenDestination.route,
                     ViewAllSearchResultsDestination.route
                 ),
+                BottomNavItem.Playlist to listOf(PlaylistsScreenDestination.route),
                 BottomNavItem.Settings to listOf(SettingsScreenDestination.route)
             )
 

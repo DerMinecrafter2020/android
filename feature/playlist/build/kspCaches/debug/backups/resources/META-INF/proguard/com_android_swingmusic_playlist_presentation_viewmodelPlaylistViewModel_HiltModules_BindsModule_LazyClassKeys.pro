@@ -1,0 +1,1 @@
+-keep,allowobfuscation,allowshrinking class com.android.swingmusic.playlist.presentation.viewmodel.PlaylistViewModel

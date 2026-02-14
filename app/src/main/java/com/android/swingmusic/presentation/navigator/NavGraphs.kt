@@ -11,6 +11,7 @@ import com.android.swingmusic.folder.presentation.screen.destinations.FoldersAnd
 import com.android.swingmusic.home.presentation.destinations.HomeDestination
 import com.android.swingmusic.player.presentation.screen.destinations.NowPlayingScreenDestination
 import com.android.swingmusic.player.presentation.screen.destinations.QueueScreenDestination
+import com.android.swingmusic.playlist.presentation.screen.destinations.PlaylistsScreenDestination
 import com.android.swingmusic.search.presentation.screen.destinations.SearchScreenDestination
 import com.android.swingmusic.search.presentation.screen.destinations.ViewAllSearchResultsDestination
 import com.android.swingmusic.settings.presentation.screen.destinations.SettingsScreenDestination
@@ -43,6 +44,7 @@ object NavGraphs {
                     AllAlbumScreenDestination,
                     AllArtistsScreenDestination,
                     SearchScreenDestination,
+                    PlaylistsScreenDestination,
 
                     // inner destinations
                     NowPlayingScreenDestination,
