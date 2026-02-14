@@ -33,6 +33,7 @@ import com.android.swingmusic.player.presentation.event.PlayerUiEvent.OnToggleRe
 import com.android.swingmusic.player.presentation.event.QueueEvent
 import com.android.swingmusic.player.presentation.state.LyricsState
 import com.android.swingmusic.player.presentation.state.PlayerUiState
+import com.android.swingmusic.player.domain.manager.FavoritesManager
 import com.android.swingmusic.uicomponent.presentation.util.formatDuration
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,7 +60,8 @@ class MediaControllerViewModel @Inject constructor(
     private val pLayerRepository: PLayerRepository,
     private val authRepository: AuthRepository,
     private val vibrator: Vibrator,
-    private val settingsRepository: com.android.swingmusic.settings.domain.repository.AppSettingsRepository
+    private val settingsRepository: com.android.swingmusic.settings.domain.repository.AppSettingsRepository,
+    private val favoritesManager: FavoritesManager
 ) : ViewModel() {
     private val _baseUrl: MutableStateFlow<String?> = MutableStateFlow(null)
     val baseUrl: StateFlow<String?> get() = _baseUrl
@@ -616,6 +618,20 @@ class MediaControllerViewModel @Inject constructor(
                                 nowPlayingTrack = _playerUiState.value.nowPlayingTrack
                                     ?.copy(isFavorite = it.data ?: false)
                             )
+                        }
+
+                        // Auto-manage favorites playlist
+                        val currentTrack = _playerUiState.value.nowPlayingTrack 
+                            ?: _playerUiState.value.queue.find { it.trackHash == trackHash }
+                        
+                        if (currentTrack != null) {
+                            if (!isFavorite) {
+                                // Track was added to favorites
+                                favoritesManager.addTrackToFavorites(currentTrack)
+                            } else {
+                                // Track was removed from favorites
+                                favoritesManager.removeTrackFromFavorites(trackHash)
+                            }
                         }
                     }
 
