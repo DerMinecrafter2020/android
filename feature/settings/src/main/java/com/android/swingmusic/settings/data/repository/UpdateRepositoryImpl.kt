@@ -22,43 +22,32 @@ class UpdateRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 val release = response.body()!!
                 
-                // Extract version code from tag (e.g., "v1.0.4.2" -> 14)
-                val tagName = release.tag_name.removePrefix("v")
-                val versionParts = tagName.split(".")
+                // Extract version from tag (e.g., "v1.0.4.2" -> "1.0.4.2")
+                val latestVersionName = release.tag_name.removePrefix("v")
                 
-                // Calculate version code: major * 1000 + minor * 100 + patch * 10 + build
-                val latestVersionCode = try {
-                    if (versionParts.size >= 4) {
-                        versionParts[0].toInt() * 1000 + 
-                        versionParts[1].toInt() * 100 + 
-                        versionParts[2].toInt() * 10 + 
-                        versionParts[3].toInt()
-                    } else {
-                        currentVersionCode // Fallback to current if parsing fails
-                    }
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to parse version code")
-                    currentVersionCode
-                }
+                // Compare version strings directly
+                val isNewer = compareVersions(latestVersionName, currentVersionName) > 0
                 
-                val isNewer = latestVersionCode > currentVersionCode
+                Timber.d("Update check: current=$currentVersionName (code=$currentVersionCode), latest=$latestVersionName, isNewer=$isNewer")
                 
                 if (isNewer) {
                     val apkAsset = release.assets.firstOrNull { it.name.endsWith(".apk") }
                     
                     if (apkAsset != null) {
                         val updateInfo = UpdateInfo(
-                            versionName = tagName,
-                            versionCode = latestVersionCode,
+                            versionName = latestVersionName,
+                            versionCode = -1, // Not used anymore
                             downloadUrl = apkAsset.browser_download_url,
                             releaseNotes = release.body ?: "Keine Release-Notes verfügbar",
                             isNewer = true
                         )
                         Result.success(updateInfo)
                     } else {
+                        Timber.w("No APK asset found in release")
                         Result.success(null)
                     }
                 } else {
+                    Timber.d("No update available")
                     Result.success(null)
                 }
             } else {
@@ -68,5 +57,27 @@ class UpdateRepositoryImpl @Inject constructor(
             Timber.e(e, "Error checking for updates")
             Result.failure(e)
         }
+    }
+    
+    /**
+     * Compare two version strings (e.g., "1.0.4.6" vs "1.0.4.5")
+     * Returns: negative if v1 < v2, zero if equal, positive if v1 > v2
+     */
+    private fun compareVersions(v1: String, v2: String): Int {
+        val parts1 = v1.split(".").map { it.toIntOrNull() ?: 0 }
+        val parts2 = v2.split(".").map { it.toIntOrNull() ?: 0 }
+        
+        val maxLength = maxOf(parts1.size, parts2.size)
+        
+        for (i in 0 until maxLength) {
+            val part1 = parts1.getOrNull(i) ?: 0
+            val part2 = parts2.getOrNull(i) ?: 0
+            
+            if (part1 != part2) {
+                return part1 - part2
+            }
+        }
+        
+        return 0
     }
 }
