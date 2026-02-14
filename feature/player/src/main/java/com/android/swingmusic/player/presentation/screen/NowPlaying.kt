@@ -26,8 +26,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -296,6 +294,37 @@ private fun NowPlaying(
                     }
 
                     Spacer(modifier = Modifier.height(28.dp))
+
+                    // Current Lyric Line
+                    if (showLyrics && lyricsState is LyricsState.Success) {
+                        val currentPositionMs = (seekPosition * track.duration * 1000L).toLong()
+                        val syncedLyrics = lyricsState.syncedLyrics
+                        
+                        if (!syncedLyrics.isNullOrEmpty()) {
+                            val currentIndex = syncedLyrics.indexOfFirst { it.timeMs > currentPositionMs }.let {
+                                if (it == -1) syncedLyrics.size - 1 else maxOf(0, it - 1)
+                            }
+                            val currentLine = syncedLyrics.getOrNull(currentIndex)
+                            
+                            if (currentLine != null && currentLine.text.isNotBlank()) {
+                                Text(
+                                    text = currentLine.text,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 32.dp, vertical = 8.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Row(
                         modifier = Modifier
@@ -600,134 +629,6 @@ private fun NowPlaying(
                             )
                         }
                     }
-                }
-            }
-
-            // ---- Lyrics Section (scroll down to see) ----
-            if (showLyrics) {
-                val currentPositionMs = (seekPosition * track.duration * 1000L).toLong()
-
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = "Lyrics",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                when (lyricsState) {
-                    is LyricsState.Loading -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(40.dp),
-                                    strokeCap = StrokeCap.Round,
-                                    strokeWidth = 2.dp
-                                )
-                            }
-                        }
-                    }
-
-                    is LyricsState.NotFound -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No lyrics found",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                )
-                            }
-                        }
-                    }
-
-                    is LyricsState.Error -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Couldn't load lyrics",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                )
-                            }
-                        }
-                    }
-
-                    is LyricsState.Success -> {
-                        val syncedLyrics = lyricsState.syncedLyrics
-                        val plainLyrics = lyricsState.plainLyrics
-
-                        if (!syncedLyrics.isNullOrEmpty()) {
-                            val currentIndex = syncedLyrics.indexOfFirst { it.timeMs > currentPositionMs }.let {
-                                if (it == -1) syncedLyrics.size - 1 else maxOf(0, it - 1)
-                            }
-
-                            itemsIndexed(syncedLyrics) { index, line ->
-                                if (line.text.isBlank()) return@itemsIndexed
-                                val isCurrent = index == currentIndex
-                                Text(
-                                    text = line.text,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontSize = if (isCurrent) 28.sp else 18.sp,
-                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isCurrent)
-                                        MaterialTheme.colorScheme.onSurface
-                                    else
-                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                                    textAlign = TextAlign.Center,
-                                    lineHeight = if (isCurrent) 36.sp else 24.sp,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 24.dp, vertical = 12.dp)
-                                )
-                            }
-                        } else if (!plainLyrics.isNullOrEmpty()) {
-                            items(plainLyrics.lines()) { line ->
-                                Text(
-                                    text = line,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 24.dp, vertical = 6.dp)
-                                )
-                            }
-                        } else {
-                            item {
-                                Text(
-                                    text = "No lyrics found",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                )
-                            }
-                        }
-                    }
-
-                    else -> {}
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
         }
