@@ -40,7 +40,7 @@ fun ArtistItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(
             top = 16.dp,
-            bottom = 8.dp,
+            bottom = 12.dp,
             start = 8.dp,
             end = 8.dp
         )
@@ -59,15 +59,15 @@ fun ArtistItem(
             contentDescription = "Artist Image",
             contentScale = ContentScale.FillWidth,
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = artist.name,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyLarge,
         )
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(3.dp))
 
         val helperText = artist.helpText.replace("minutes", "mins")
 
@@ -77,7 +77,8 @@ fun ArtistItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .75F)
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .65F)
             )
     }
 }

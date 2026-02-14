@@ -115,7 +115,6 @@ private fun NowPlaying(
     onToggleShuffleMode: (ShuffleMode) -> Unit,
     onSeekPlayBack: (Float) -> Unit,
     onClickMore: () -> Unit,
-    onClickLyricsIcon: () -> Unit,
     onToggleFavorite: (Boolean, String) -> Unit,
     onClickQueueIcon: () -> Unit
 ) {
@@ -227,8 +226,8 @@ private fun NowPlaying(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surface.copy(alpha = .75F),
-                            MaterialTheme.colorScheme.surface.copy(alpha = 1F),
+                            MaterialTheme.colorScheme.surface.copy(alpha = .65F),
+                            MaterialTheme.colorScheme.surface.copy(alpha = .95F),
                             MaterialTheme.colorScheme.surface.copy(alpha = 1F)
                         )
                     )
@@ -268,18 +267,20 @@ private fun NowPlaying(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
                             AsyncImage(
                                 modifier = Modifier
-                                    .size(356.dp)
-                                    .clip(RoundedCornerShape(7))
+                                    .size(380.dp)
+                                    .clip(RoundedCornerShape(12.dp))
                                     .graphicsLayer {
-                                        val scale = lerp(1f, 1.25f, pageOffset)
+                                        val scale = lerp(1f, 1.15f, pageOffset)
                                         scaleX = scale
                                         scaleY = scale
                                         clip = true
-                                        shape = RoundedCornerShape(7)
+                                        shape = RoundedCornerShape(12.dp)
+                                        shadowElevation = 24f
                                     },
+                                    
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data(imageData)
                                     .crossfade(true)
@@ -293,7 +294,7 @@ private fun NowPlaying(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     // Current Lyric Line
                     if (showLyrics && lyricsState is LyricsState.Success) {
@@ -310,15 +311,15 @@ private fun NowPlaying(
                                 Text(
                                     text = currentLine.text,
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
                                     textAlign = TextAlign.Center,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 32.dp, vertical = 8.dp)
+                                        .padding(horizontal = 32.dp, vertical = 12.dp)
                                 )
                             }
                         }
@@ -336,8 +337,9 @@ private fun NowPlaying(
                         Column(modifier = Modifier.fillMaxWidth(.78F)) {
                             Text(
                                 text = track.title,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontSize = 18.sp,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -448,14 +450,16 @@ private fun NowPlaying(
                     ) {
                         IconButton(
                             modifier = Modifier
+                                .size(56.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .5F)
+                                    MaterialTheme.colorScheme.surfaceVariant
                                 ), onClick = {
                                 onClickPrev()
                             }
                         ) {
                             Icon(
+                                modifier = Modifier.size(28.dp),
                                 painter = painterResource(id = R.drawable.prev),
                                 contentDescription = "Prev"
                             )
@@ -492,15 +496,14 @@ private fun NowPlaying(
                                 } else {
                                     Box(
                                         modifier = Modifier
-                                            .height(70.dp)
-                                            .width(80.dp)
-                                            .clip(RoundedCornerShape(32))
-                                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                                            .size(80.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primary),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            modifier = Modifier.size(44.dp),
-                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.size(48.dp),
+                                            tint = MaterialTheme.colorScheme.onPrimary,
                                             painter = painterResource(id = playbackStateIcon),
                                             contentDescription = "Play/Pause"
                                         )
@@ -520,15 +523,17 @@ private fun NowPlaying(
 
                         IconButton(
                             modifier = Modifier
+                                .size(56.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .5F)
+                                    MaterialTheme.colorScheme.surfaceVariant
                                 ), onClick = {
                                 onClickNext()
                             }) {
                             Icon(
+                                modifier = Modifier.size(28.dp),
                                 painter = painterResource(id = R.drawable.next),
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 contentDescription = "Next"
                             )
                         }
@@ -584,19 +589,6 @@ private fun NowPlaying(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         IconButton(onClick = {
-                            onClickLyricsIcon()
-                        }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.lyrics_icon),
-                                tint = if (showLyrics)
-                                    MaterialTheme.colorScheme.onSurface
-                                else
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = .3F),
-                                contentDescription = "Lyrics"
-                            )
-                        }
-
-                        IconButton(onClick = {
                             onToggleRepeatMode(repeatMode)
                         }) {
                             Icon(
@@ -647,16 +639,6 @@ fun NowPlayingScreen(
 ) {
     val playerUiState by mediaControllerViewModel.playerUiState.collectAsState()
     val baseUrl by mediaControllerViewModel.baseUrl.collectAsState()
-    var lyricsOpen by remember { mutableStateOf(playerUiState.showLyrics) }
-
-    LaunchedEffect(playerUiState.showLyrics) {
-        lyricsOpen = playerUiState.showLyrics
-    }
-
-    BackHandler(enabled = lyricsOpen) {
-        lyricsOpen = false
-        mediaControllerViewModel.onPlayerUiEvent(PlayerUiEvent.OnClickLyricsIcon)
-    }
 
     NowPlaying(
         track = playerUiState.nowPlayingTrack,
@@ -715,11 +697,6 @@ fun NowPlayingScreen(
         onSeekPlayBack = {
             mediaControllerViewModel.onPlayerUiEvent(
                 PlayerUiEvent.OnSeekPlayBack(it)
-            )
-        },
-        onClickLyricsIcon = {
-            mediaControllerViewModel.onPlayerUiEvent(
-                PlayerUiEvent.OnClickLyricsIcon
             )
         },
         onToggleFavorite = { isFavorite, trackHash ->

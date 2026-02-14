@@ -69,11 +69,14 @@ private fun MiniPlayer(
     var swipeDistance by remember { mutableFloatStateOf(0F) }
     val interactions = remember { MutableInteractionSource() }
 
-    Surface {
+    Surface(
+        tonalElevation = 3.dp,
+        shadowElevation = 8.dp
+    ) {
         Column(
             modifier = Modifier
-                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                .background(MaterialTheme.colorScheme.inverseOnSurface)
+                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -107,15 +110,14 @@ private fun MiniPlayer(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(0.8F)
-                        .padding(8.dp)
-                        // div/3 the offset to kinda slow down the displacement
+                        .padding(12.dp)
                         .offset { IntOffset(swipeDistance.roundToInt() / 3, y = 0) },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AsyncImage(
                         modifier = Modifier
-                            .size(38.dp)
-                            .clip(RoundedCornerShape(18)),
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(8.dp)),
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("${baseUrl}img/thumbnail/small/${trackImage}")
                             .crossfade(true)
@@ -127,13 +129,13 @@ private fun MiniPlayer(
                         contentScale = ContentScale.Crop
                     )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
 
                     Text(
                         text = trackTitle,
                         maxLines = 1,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
                         overflow = TextOverflow.Ellipsis,
                         color = if ((swipeDistance.toInt() != 0))
                             MaterialTheme.colorScheme.onSurface.copy(alpha = .25F) else
@@ -144,7 +146,8 @@ private fun MiniPlayer(
                 // Player State Indicator
                 IconButton(
                     modifier = Modifier
-                        .padding(end = 8.dp),
+                        .padding(end = 12.dp)
+                        .size(40.dp),
                     onClick = {
                         if (playbackState == PlaybackState.ERROR) {
                             onResumePlayBackFromError()
@@ -181,11 +184,13 @@ private fun MiniPlayer(
             LinearProgressIndicator(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(1.dp),
+                    .height(3.dp),
                 gapSize = 0.dp,
                 drawStopIndicator = {},
                 progress = { playbackProgress },
-                strokeCap = StrokeCap.Square
+                strokeCap = StrokeCap.Round,
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
     }

@@ -71,6 +71,7 @@ import com.android.swingmusic.search.presentation.viewmodel.SearchViewModel
 import com.android.swingmusic.settings.presentation.screen.destinations.SettingsScreenDestination
 import com.android.swingmusic.service.PlaybackService
 import com.android.swingmusic.service.SessionTokenManager
+import com.android.swingmusic.presentation.util.toDestination
 import com.android.swingmusic.uicomponent.presentation.theme.SwingMusicTheme
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.common.util.concurrent.ListenableFuture
@@ -140,6 +141,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isUserLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
+            val startPage by settingsRepository.startPage.collectAsState(initial = com.android.swingmusic.settings.domain.model.StartPage.FOLDERS)
 
             val playerState = mediaControllerViewModel.playerUiState.collectAsState()
 
@@ -298,6 +300,7 @@ class MainActivity : ComponentActivity() {
                         isUserLoggedIn?.let { value ->
                             SwingMusicAppNavigation(
                                 isUserLoggedIn = value,
+                                startPageDestination = startPage.toDestination(),
                                 navController = navController,
                                 authViewModel = authViewModel,
                                 mediaControllerViewModel = mediaControllerViewModel,
@@ -402,6 +405,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 internal fun SwingMusicAppNavigation(
     isUserLoggedIn: Boolean,
+    startPageDestination: DestinationSpec<*>,
     navController: NavHostController,
     authViewModel: AuthViewModel,
     mediaControllerViewModel: MediaControllerViewModel,
@@ -409,13 +413,15 @@ internal fun SwingMusicAppNavigation(
     artistInfoViewModel: ArtistInfoViewModel,
     searchViewModel: SearchViewModel
 ) {
-    val navGraph = remember(isUserLoggedIn) { NavGraphs.root(isUserLoggedIn) }
+    val navGraph = remember(isUserLoggedIn, startPageDestination) { 
+        NavGraphs.root(isUserLoggedIn, startPageDestination) 
+    }
 
     val animatedNavHostEngine = rememberAnimatedNavHostEngine(
         navHostContentAlignment = Alignment.TopCenter,
         rootDefaultAnimations = RootNavGraphDefaultAnimations.ACCOMPANIST_FADING,
         defaultAnimationsForNestedNavGraph = mapOf(
-            NavGraphs.root(isUserLoggedIn) to NestedNavGraphDefaultAnimations(
+            NavGraphs.root(isUserLoggedIn, startPageDestination) to NestedNavGraphDefaultAnimations(
                 enterTransition = {
                     scaleInEnterTransition()
                 },

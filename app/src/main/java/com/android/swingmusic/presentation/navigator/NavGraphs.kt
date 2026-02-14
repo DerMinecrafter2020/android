@@ -19,12 +19,15 @@ import com.ramcosta.composedestinations.spec.NavGraphSpec
 import com.ramcosta.composedestinations.spec.Route
 
 object NavGraphs {
-    fun root(isUserLoggedIn: Boolean) = object : NavGraphSpec {
+    fun root(isUserLoggedIn: Boolean, startPageDestination: DestinationSpec<*>? = null) = object : NavGraphSpec {
         override val route: String = "root"
 
-        // TODO: Use Home instead of Folder as the startRoute
         override val startRoute: Route =
-            if (isUserLoggedIn) FoldersAndTracksScreenDestination else LoginWithQrCodeDestination
+            if (isUserLoggedIn) {
+                startPageDestination ?: FoldersAndTracksScreenDestination
+            } else {
+                LoginWithQrCodeDestination
+            }
 
         override val destinationsByRoute: Map<String, DestinationSpec<*>>
             get() {

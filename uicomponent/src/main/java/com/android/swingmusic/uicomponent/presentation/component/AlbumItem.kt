@@ -89,7 +89,7 @@ fun AlbumItem(
     ) {
         AsyncImage(
             modifier = modifier
-                .clip(RoundedCornerShape(10))
+                .clip(RoundedCornerShape(12.dp))
                 .clickable { onClick(album.albumHash) },
             model = ImageRequest.Builder(LocalContext.current)
                 .data("${baseUrl}img/thumbnail/medium/${album.image}")
@@ -103,40 +103,42 @@ fun AlbumItem(
         )
 
         if (album.helpText.isNotEmpty() && (screen != Screen.ARTIST)) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = album.helpText,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .75F)
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = .65F)
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Text(
             text = album.title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyLarge,
         )
 
         if (screen != Screen.ARTIST) {
             if (album.albumArtists.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(3.dp))
 
                 Text(
                     text = album.albumArtists[0].name,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = .75F)
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = .65F)
                 )
             }
         } else {
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Spacer(modifier = Modifier.height(2.dp))
 
