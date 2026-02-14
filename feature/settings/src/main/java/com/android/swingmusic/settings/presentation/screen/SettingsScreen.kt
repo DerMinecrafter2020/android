@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.android.swingmusic.settings.domain.model.StartPage
@@ -43,6 +44,16 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    
+    val versionInfo = remember {
+        try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            "Version ${packageInfo.versionName} (${packageInfo.versionCode})"
+        } catch (e: Exception) {
+            "Version unbekannt"
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -189,6 +200,34 @@ fun SettingsScreen(
                     )
                 }
             }
-        }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Info",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "App-Version",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = versionInfo,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }        }
     }
 }
