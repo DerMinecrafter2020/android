@@ -87,6 +87,7 @@ import com.android.swingmusic.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -95,6 +96,12 @@ class MainActivity : ComponentActivity() {
     private val foldersViewModel: FoldersViewModel by viewModels<FoldersViewModel>()
     private val artistInfoViewModel: ArtistInfoViewModel by viewModels<ArtistInfoViewModel>()
     private val searchViewModel: SearchViewModel by viewModels<SearchViewModel>()
+
+    @Inject
+    lateinit var updateRepository: com.android.swingmusic.settings.domain.repository.UpdateRepository
+    
+    @Inject
+    lateinit var settingsRepository: com.android.swingmusic.settings.domain.repository.AppSettingsRepository
 
     private lateinit var controllerFuture: ListenableFuture<MediaController>
 
@@ -120,6 +127,15 @@ class MainActivity : ComponentActivity() {
         }
 
         scheduleTokenRefreshWork(applicationContext)
+
+        // Check for updates on startup
+        lifecycleScope.launch {
+            settingsRepository.autoUpdateEnabled.collectLatest { enabled ->
+                if (enabled) {
+                    checkForUpdates()
+                }
+            }
+        }
 
         setContent {
             val isUserLoggedIn by authViewModel.isUserLoggedIn.collectAsState()
@@ -324,6 +340,52 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    private fun checkForUpdates() {
+        lifecycleScope.launch {
+            try {
+                val currentVersionCode = packageManager.getPackageInfo(packageName, 0).let {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        it.longVersionCode.toInt()
+                    } else {
+                        @Suppress("DEPRECATION")
+                        it.versionCode
+                    }
+                }
+                
+                val currentVersionName = packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
+                
+                val result = updateRepository.checkForUpdates(currentVersionCode, currentVersionName)
+                
+                result.onSuccess { updateInfo ->
+                    if (updateInfo != null) {
+                        showUpdateDialog(updateInfo)
+                    }
+                }.onFailure { e ->
+                    timber.log.Timber.e(e, "Failed to check for updates")
+                }
+            } catch (e: Exception) {
+                timber.log.Timber.e(e, "Error checking updates")
+            }
+        }
+    }
+
+    private fun showUpdateDialog(updateInfo: com.android.swingmusic.settings.domain.model.UpdateInfo) {
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Update verfügbar")
+            .setMessage("Version ${updateInfo.versionName} ist verfügbar!\n\n${updateInfo.releaseNotes}")
+            .setPositiveButton("Jetzt aktualisieren") { _, _ ->
+                downloadAndInstallUpdate(updateInfo)
+            }
+            .setNegativeButton("Später", null)
+            .setCancelable(true)
+            .show()
+    }
+
+    private fun downloadAndInstallUpdate(updateInfo: com.android.swingmusic.settings.domain.model.UpdateInfo) {
+        val downloadManager = com.android.swingmusic.settings.presentation.util.UpdateDownloadManager(this)
+        downloadManager.downloadAndInstallUpdate(updateInfo.downloadUrl, updateInfo.versionName)
     }
 
     override fun onDestroy() {

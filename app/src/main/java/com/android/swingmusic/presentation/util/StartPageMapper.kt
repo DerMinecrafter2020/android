@@ -5,9 +5,9 @@ import com.android.swingmusic.artist.presentation.screen.destinations.AllArtists
 import com.android.swingmusic.folder.presentation.screen.destinations.FoldersAndTracksScreenDestination
 import com.android.swingmusic.search.presentation.screen.destinations.SearchScreenDestination
 import com.android.swingmusic.settings.domain.model.StartPage
-import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
+import com.ramcosta.composedestinations.spec.DestinationSpec
 
-fun StartPage.toDestination(): DirectionDestinationSpec {
+fun StartPage.toDestination(): DestinationSpec<*> {
     return when (this) {
         StartPage.FOLDERS -> FoldersAndTracksScreenDestination
         StartPage.ALBUMS -> AllAlbumScreenDestination
