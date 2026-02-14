@@ -13,7 +13,8 @@ import javax.inject.Inject
 
 data class SettingsUiState(
     val autoUpdateEnabled: Boolean = false,
-    val startPage: StartPage = StartPage.FOLDERS
+    val startPage: StartPage = StartPage.FOLDERS,
+    val showLyrics: Boolean = false
 )
 
 @HiltViewModel
@@ -35,6 +36,11 @@ class SettingsViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(startPage = page)
             }
         }
+        viewModelScope.launch {
+            settingsRepository.showLyrics.collect { show ->
+                _uiState.value = _uiState.value.copy(showLyrics = show)
+            }
+        }
     }
 
     fun setAutoUpdateEnabled(enabled: Boolean) {
@@ -46,6 +52,12 @@ class SettingsViewModel @Inject constructor(
     fun setStartPage(page: StartPage) {
         viewModelScope.launch {
             settingsRepository.setStartPage(page)
+        }
+    }
+
+    fun setShowLyrics(show: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setShowLyrics(show)
         }
     }
 }

@@ -58,7 +58,8 @@ import androidx.core.net.toUri
 class MediaControllerViewModel @Inject constructor(
     private val pLayerRepository: PLayerRepository,
     private val authRepository: AuthRepository,
-    private val vibrator: Vibrator
+    private val vibrator: Vibrator,
+    private val settingsRepository: com.android.swingmusic.settings.domain.repository.AppSettingsRepository
 ) : ViewModel() {
     private val _baseUrl: MutableStateFlow<String?> = MutableStateFlow(null)
     val baseUrl: StateFlow<String?> get() = _baseUrl
@@ -85,6 +86,14 @@ class MediaControllerViewModel @Inject constructor(
 
     init {
         refreshBaseUrl()
+        viewModelScope.launch {
+            settingsRepository.showLyrics.collect { show ->
+                _playerUiState.value = _playerUiState.value.copy(showLyrics = show)
+                if (show && _playerUiState.value.lyricsState == LyricsState.Idle) {
+                    fetchLyrics(_playerUiState.value.nowPlayingTrack)
+                }
+            }
+        }
     }
 
     fun refreshBaseUrl() {
@@ -781,10 +790,9 @@ class MediaControllerViewModel @Inject constructor(
                 }
 
                 is OnClickLyricsIcon -> {
-                    val showLyrics = !_playerUiState.value.showLyrics
-                    _playerUiState.value = _playerUiState.value.copy(showLyrics = showLyrics)
-                    if (showLyrics && _playerUiState.value.lyricsState == LyricsState.Idle) {
-                        fetchLyrics(_playerUiState.value.nowPlayingTrack)
+                    viewModelScope.launch {
+                        val newShowLyrics = !_playerUiState.value.showLyrics
+                        settingsRepository.setShowLyrics(newShowLyrics)
                     }
                 }
 

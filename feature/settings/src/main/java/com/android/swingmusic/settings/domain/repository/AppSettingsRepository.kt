@@ -16,6 +16,7 @@ interface AppSettingsRepository {
 
     val autoUpdateEnabled: Flow<Boolean>
     val startPage: Flow<StartPage>
+    val showLyrics: Flow<Boolean>
 
     suspend fun setAlbumGridCount(count: Int)
     suspend fun setAlbumSortBy(sortBy: SortBy)
@@ -27,4 +28,5 @@ interface AppSettingsRepository {
 
     suspend fun setAutoUpdateEnabled(enabled: Boolean)
     suspend fun setStartPage(page: StartPage)
+    suspend fun setShowLyrics(show: Boolean)
 }

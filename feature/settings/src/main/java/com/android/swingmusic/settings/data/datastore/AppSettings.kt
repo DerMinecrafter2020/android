@@ -32,6 +32,7 @@ class AppSettings @Inject constructor(
 
         private val AUTO_UPDATE_ENABLED = androidx.datastore.preferences.core.booleanPreferencesKey("auto_update_enabled")
         private val START_PAGE = stringPreferencesKey("start_page")
+        private val SHOW_LYRICS = androidx.datastore.preferences.core.booleanPreferencesKey("show_lyrics")
     }
 
     // Album Flows
@@ -85,10 +86,17 @@ class AppSettings @Inject constructor(
         it[START_PAGE] ?: "FOLDERS"
     }
 
+    val getShowLyrics: Flow<Boolean> = context.dataStore.data.map {
+        it[SHOW_LYRICS] ?: false
+    }
+
     // General Settings Update Methods
     suspend fun updateAutoUpdateEnabled(enabled: Boolean) =
         context.dataStore.edit { it[AUTO_UPDATE_ENABLED] = enabled }
 
     suspend fun updateStartPage(page: String) =
         context.dataStore.edit { it[START_PAGE] = page }
+
+    suspend fun updateShowLyrics(show: Boolean) =
+        context.dataStore.edit { it[SHOW_LYRICS] = show }
 }

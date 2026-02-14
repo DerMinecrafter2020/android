@@ -66,11 +66,17 @@ class AppSettingsDataRepository @Inject constructor(
     override val startPage: Flow<com.android.swingmusic.settings.domain.model.StartPage> = 
         appSettings.getStartPage.map { com.android.swingmusic.settings.domain.model.StartPage.valueOf(it) }
 
+    override val showLyrics: Flow<Boolean> = appSettings.getShowLyrics
+
     override suspend fun setAutoUpdateEnabled(enabled: Boolean) {
         appSettings.updateAutoUpdateEnabled(enabled)
     }
 
     override suspend fun setStartPage(page: com.android.swingmusic.settings.domain.model.StartPage) {
         appSettings.updateStartPage(page.name)
+    }
+
+    override suspend fun setShowLyrics(show: Boolean) {
+        appSettings.updateShowLyrics(show)
     }
 }

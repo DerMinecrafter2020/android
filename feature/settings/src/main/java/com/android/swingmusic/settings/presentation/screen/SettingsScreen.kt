@@ -89,6 +89,29 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Lyrics anzeigen",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Zeigt die aktuelle Lyrics-Zeile im Player an",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+                Switch(
+                    checked = uiState.showLyrics,
+                    onCheckedChange = { viewModel.setShowLyrics(it) }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             var showStartPageMenu by remember { mutableStateOf(false) }
 
             Column {
@@ -117,10 +140,10 @@ fun SettingsScreen(
                     ) {
                         Text(
                             text = when (uiState.startPage) {
-                                StartPage.FOLDERS -> "Ordner"
-                                StartPage.ALBUMS -> "Alben"
-                                StartPage.ARTISTS -> "Künstler"
-                                StartPage.SEARCH -> "Suche"
+                                StartPage.FOLDERS -> "Folders"
+                                StartPage.ALBUMS -> "Albums"
+                                StartPage.ARTISTS -> "Artists"
+                                StartPage.SEARCH -> "Search"
                             },
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge
@@ -137,28 +160,28 @@ fun SettingsScreen(
                     onDismissRequest = { showStartPageMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Ordner") },
+                        text = { Text("Folders") },
                         onClick = {
                             viewModel.setStartPage(StartPage.FOLDERS)
                             showStartPageMenu = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Alben") },
+                        text = { Text("Albums") },
                         onClick = {
                             viewModel.setStartPage(StartPage.ALBUMS)
                             showStartPageMenu = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Künstler") },
+                        text = { Text("Artists") },
                         onClick = {
                             viewModel.setStartPage(StartPage.ARTISTS)
                             showStartPageMenu = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Suche") },
+                        text = { Text("Search") },
                         onClick = {
                             viewModel.setStartPage(StartPage.SEARCH)
                             showStartPageMenu = false
