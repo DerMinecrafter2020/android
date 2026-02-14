@@ -67,6 +67,7 @@ import com.android.swingmusic.uicomponent.presentation.component.CustomTrackBott
 import com.android.swingmusic.uicomponent.presentation.component.FolderItem
 import com.android.swingmusic.uicomponent.presentation.component.PathIndicatorItem
 import com.android.swingmusic.uicomponent.presentation.component.TrackItem
+import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.annotation.Destination
 import java.util.Locale
 
@@ -475,7 +476,7 @@ private fun FoldersAndTracks(
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Destination
+@Destination(start = true)
 @Composable
 fun FoldersAndTracksScreen(
     foldersViewModel: FoldersViewModel,

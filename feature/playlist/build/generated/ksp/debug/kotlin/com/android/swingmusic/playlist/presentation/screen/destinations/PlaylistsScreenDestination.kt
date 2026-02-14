@@ -12,7 +12,6 @@ import androidx.navigation.navDeepLink
 import com.android.swingmusic.playlist.presentation.screen.PlaylistsScreen
 import com.ramcosta.composedestinations.navigation.DependenciesContainerBuilder
 import com.ramcosta.composedestinations.navigation.DestinationDependenciesContainer
-import com.ramcosta.composedestinations.navigation.require
 import com.ramcosta.composedestinations.scope.DestinationScope
 import com.ramcosta.composedestinations.spec.DestinationSpec
 import com.ramcosta.composedestinations.spec.DestinationStyle
@@ -32,10 +31,7 @@ public object PlaylistsScreenDestination : DirectionDestination {
     
     @Composable
     override fun DestinationScope<Unit>.Content() {
-		val dependencyContainer = buildDependencies()
-		PlaylistsScreen(
-			playlistViewModel = dependencyContainer.require()
-		)
+		PlaylistsScreen()
     }
     
 }

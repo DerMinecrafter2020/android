@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import com.android.swingmusic.album.presentation.screen.destinations.AllAlbumScreenDestination
 import com.android.swingmusic.artist.presentation.screen.destinations.AllArtistsScreenDestination
 import com.android.swingmusic.folder.presentation.screen.destinations.FoldersAndTracksScreenDestination
-import com.android.swingmusic.playlist.presentation.screen.destinations.PlaylistsScreenDestination
 import com.android.swingmusic.search.presentation.screen.destinations.SearchScreenDestination
 import com.android.swingmusic.settings.presentation.screen.destinations.SettingsScreenDestination
 import com.ramcosta.composedestinations.spec.DestinationSpec
@@ -39,11 +38,6 @@ sealed class BottomNavItem(
         destination = SearchScreenDestination
     )
 
-    data object Playlist : BottomNavItem(
-        title = "Playlists",
-        icon = UiComponent.drawable.play_list,
-        destination = PlaylistsScreenDestination
-    )
 
     data object Settings : BottomNavItem(
         title = "Settings",

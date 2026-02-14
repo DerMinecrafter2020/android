@@ -41,12 +41,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 
-@RootNavGraph(start = true)
 @Destination
 @Composable
 fun PlaylistsScreen(
-    playlistViewModel: PlaylistViewModel
+    playlistViewModel: PlaylistViewModel = hiltViewModel()
 ) {
     val uiState by playlistViewModel.uiState.collectAsState()
     var showCreateDialog by remember { mutableStateOf(false) }
