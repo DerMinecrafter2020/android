@@ -58,9 +58,7 @@ import androidx.core.net.toUri
 class MediaControllerViewModel @Inject constructor(
     private val pLayerRepository: PLayerRepository,
     private val authRepository: AuthRepository,
-    private val vibrator: Vibrator,
-    private val webhookManager: com.android.swingmusic.settings.data.worker.DiscordWebhookManager,
-    private val settingsRepository: com.android.swingmusic.settings.domain.repository.AppSettingsRepository
+    private val vibrator: Vibrator
 ) : ViewModel() {
     private val _baseUrl: MutableStateFlow<String?> = MutableStateFlow(null)
     val baseUrl: StateFlow<String?> get() = _baseUrl
@@ -87,23 +85,6 @@ class MediaControllerViewModel @Inject constructor(
 
     init {
         refreshBaseUrl()
-        startDiscordWebhookTimer()
-    }
-
-    private fun startDiscordWebhookTimer() {
-        viewModelScope.launch {
-            while (true) {
-                delay(180_000) // 3 minutes
-                val enabled = try {
-                    settingsRepository.discordWebhookEnabled.first()
-                } catch (e: Exception) {
-                    false
-                }
-                if (enabled) {
-                    webhookManager.sendNowPlayingWebhook(_playerUiState.value.nowPlayingTrack)
-                }
-            }
-        }
     }
 
     fun refreshBaseUrl() {

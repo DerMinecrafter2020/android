@@ -2,6 +2,7 @@ package com.android.swingmusic.settings.domain.repository
 
 import com.android.swingmusic.core.domain.util.SortBy
 import com.android.swingmusic.core.domain.util.SortOrder
+import com.android.swingmusic.settings.domain.model.StartPage
 import kotlinx.coroutines.flow.Flow
 
 interface AppSettingsRepository {
@@ -13,8 +14,8 @@ interface AppSettingsRepository {
     val artistSortBy: Flow<SortBy>
     val artistSortOrder: Flow<SortOrder>
 
-    val discordWebhookEnabled: Flow<Boolean>
-    val discordWebhookUrl: Flow<String>
+    val autoUpdateEnabled: Flow<Boolean>
+    val startPage: Flow<StartPage>
 
     suspend fun setAlbumGridCount(count: Int)
     suspend fun setAlbumSortBy(sortBy: SortBy)
@@ -24,6 +25,6 @@ interface AppSettingsRepository {
     suspend fun setArtistSortBy(sortBy: SortBy)
     suspend fun setArtistSortOrder(order: SortOrder)
 
-    suspend fun setDiscordWebhookEnabled(enabled: Boolean)
-    suspend fun setDiscordWebhookUrl(url: String)
+    suspend fun setAutoUpdateEnabled(enabled: Boolean)
+    suspend fun setStartPage(page: StartPage)
 }

@@ -2,7 +2,7 @@ package com.android.swingmusic.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.swingmusic.settings.data.worker.DiscordWebhookManager
+import com.android.swingmusic.settings.domain.model.StartPage
 import com.android.swingmusic.settings.domain.repository.AppSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,14 +12,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SettingsUiState(
-    val discordWebhookEnabled: Boolean = false,
-    val discordWebhookUrl: String = ""
+    val autoUpdateEnabled: Boolean = false,
+    val startPage: StartPage = StartPage.FOLDERS
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: AppSettingsRepository,
-    private val webhookManager: DiscordWebhookManager
+    private val settingsRepository: AppSettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -27,31 +26,26 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            settingsRepository.discordWebhookEnabled.collect { enabled ->
-                _uiState.value = _uiState.value.copy(discordWebhookEnabled = enabled)
+            settingsRepository.autoUpdateEnabled.collect { enabled ->
+                _uiState.value = _uiState.value.copy(autoUpdateEnabled = enabled)
             }
         }
         viewModelScope.launch {
-            settingsRepository.discordWebhookUrl.collect { url ->
-                _uiState.value = _uiState.value.copy(discordWebhookUrl = url)
-            }
-        }
-    }
-
-    fun setDiscordWebhookEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.setDiscordWebhookEnabled(enabled)
-            if (enabled) {
-                webhookManager.schedulePeriodicWebhook()
-            } else {
-                webhookManager.cancelPeriodicWebhook()
+            settingsRepository.startPage.collect { page ->
+                _uiState.value = _uiState.value.copy(startPage = page)
             }
         }
     }
 
-    fun setDiscordWebhookUrl(url: String) {
+    fun setAutoUpdateEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.setDiscordWebhookUrl(url)
+            settingsRepository.setAutoUpdateEnabled(enabled)
+        }
+    }
+
+    fun setStartPage(page: StartPage) {
+        viewModelScope.launch {
+            settingsRepository.setStartPage(page)
         }
     }
 }

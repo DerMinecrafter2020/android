@@ -30,8 +30,8 @@ class AppSettings @Inject constructor(
         private val ARTIST_SORT_BY = stringPreferencesKey("artist_sort_by")
         private val ARTIST_SORT_ORDER = stringPreferencesKey("artist_sort_order")
 
-        private val DISCORD_WEBHOOK_ENABLED = androidx.datastore.preferences.core.booleanPreferencesKey("discord_webhook_enabled")
-        private val DISCORD_WEBHOOK_URL = stringPreferencesKey("discord_webhook_url")
+        private val AUTO_UPDATE_ENABLED = androidx.datastore.preferences.core.booleanPreferencesKey("auto_update_enabled")
+        private val START_PAGE = stringPreferencesKey("start_page")
     }
 
     // Album Flows
@@ -76,18 +76,19 @@ class AppSettings @Inject constructor(
     suspend fun updateArtistSortOrder(value: String) =
         context.dataStore.edit { it[ARTIST_SORT_ORDER] = value }
 
-    // Discord Webhook Flows
-    val getDiscordWebhookEnabled: Flow<Boolean> = context.dataStore.data.map {
-        it[DISCORD_WEBHOOK_ENABLED] ?: false
+    // General Settings Flows
+    val getAutoUpdateEnabled: Flow<Boolean> = context.dataStore.data.map {
+        it[AUTO_UPDATE_ENABLED] ?: false
     }
-    val getDiscordWebhookUrl: Flow<String> = context.dataStore.data.map {
-        it[DISCORD_WEBHOOK_URL] ?: ""
+    
+    val getStartPage: Flow<String> = context.dataStore.data.map {
+        it[START_PAGE] ?: "FOLDERS"
     }
 
-    // Discord Webhook Update Methods
-    suspend fun updateDiscordWebhookEnabled(enabled: Boolean) =
-        context.dataStore.edit { it[DISCORD_WEBHOOK_ENABLED] = enabled }
+    // General Settings Update Methods
+    suspend fun updateAutoUpdateEnabled(enabled: Boolean) =
+        context.dataStore.edit { it[AUTO_UPDATE_ENABLED] = enabled }
 
-    suspend fun updateDiscordWebhookUrl(url: String) =
-        context.dataStore.edit { it[DISCORD_WEBHOOK_URL] = url }
+    suspend fun updateStartPage(page: String) =
+        context.dataStore.edit { it[START_PAGE] = page }
 }

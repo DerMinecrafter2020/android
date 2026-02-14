@@ -60,15 +60,17 @@ class AppSettingsDataRepository @Inject constructor(
         appSettings.updateArtistSortOrder(order.name)
     }
 
-    // --- Discord Webhook Settings ---
-    override val discordWebhookEnabled: Flow<Boolean> = appSettings.getDiscordWebhookEnabled
-    override val discordWebhookUrl: Flow<String> = appSettings.getDiscordWebhookUrl
+    // --- General Settings ---
+    override val autoUpdateEnabled: Flow<Boolean> = appSettings.getAutoUpdateEnabled
 
-    override suspend fun setDiscordWebhookEnabled(enabled: Boolean) {
-        appSettings.updateDiscordWebhookEnabled(enabled)
+    override val startPage: Flow<com.android.swingmusic.settings.domain.model.StartPage> = 
+        appSettings.getStartPage.map { com.android.swingmusic.settings.domain.model.StartPage.valueOf(it) }
+
+    override suspend fun setAutoUpdateEnabled(enabled: Boolean) {
+        appSettings.updateAutoUpdateEnabled(enabled)
     }
 
-    override suspend fun setDiscordWebhookUrl(url: String) {
-        appSettings.updateDiscordWebhookUrl(url)
+    override suspend fun setStartPage(page: com.android.swingmusic.settings.domain.model.StartPage) {
+        appSettings.updateStartPage(page.name)
     }
 }
