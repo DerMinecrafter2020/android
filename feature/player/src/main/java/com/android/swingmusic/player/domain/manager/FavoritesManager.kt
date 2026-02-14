@@ -27,7 +27,7 @@ class FavoritesManager @Inject constructor() {
         val currentFavorites = _favoritesTracks.value
         if (!currentFavorites.any { it.trackHash == track.trackHash }) {
             _favoritesTracks.value = currentFavorites + track
-            Timber.d("Track auto-added to favorites: ${track.name}")
+            Timber.d("Track auto-added to favorites: ${track.title}")
         }
     }
     
