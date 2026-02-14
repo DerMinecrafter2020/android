@@ -30,9 +30,6 @@ class DataPlaylistRepository @Inject constructor(
         try {
             emit(Resource.Loading())
             
-            val accessToken = AuthTokenHolder.accessToken ?: authRepository.getAccessToken()
-            val baseUrl = BaseUrlHolder.baseUrl ?: authRepository.getBaseUrl()
-            
             // TODO: Implement API call to get all playlists
             // For now, return empty list
             emit(Resource.Success(emptyList()))
@@ -94,11 +91,7 @@ class DataPlaylistRepository @Inject constructor(
         try {
             emit(Resource.Loading())
             
-            val accessToken = AuthTokenHolder.accessToken ?: authRepository.getAccessToken()
-            val baseUrl = BaseUrlHolder.baseUrl ?: authRepository.getBaseUrl()
-            
             // TODO: Call API to get favorite tracks
-            // For now return empty
             emit(Resource.Success(emptyList()))
             
         } catch (e: Exception) {
@@ -110,9 +103,6 @@ class DataPlaylistRepository @Inject constructor(
     override suspend fun createPlaylist(name: String, description: String): Flow<Resource<Playlist>> = flow {
         try {
             emit(Resource.Loading())
-            
-            val accessToken = AuthTokenHolder.accessToken ?: authRepository.getAccessToken()
-            val baseUrl = BaseUrlHolder.baseUrl ?: authRepository.getBaseUrl()
             
             // TODO: Call API to create playlist
             val playlist = Playlist(
@@ -151,9 +141,7 @@ class DataPlaylistRepository @Inject constructor(
         try {
             emit(Resource.Loading())
             
-            val accessToken = AuthTokenHolder.accessToken ?: authRepository.getAccessToken()
-            val baseUrl = BaseUrlHolder.baseUrl ?: authRepository.getBaseUrl()
-            
+
             // TODO: Call API to add tracks to playlist
             emit(Resource.Success(true))
             
@@ -167,9 +155,7 @@ class DataPlaylistRepository @Inject constructor(
         try {
             emit(Resource.Loading())
             
-            val accessToken = AuthTokenHolder.accessToken ?: authRepository.getAccessToken()
-            val baseUrl = BaseUrlHolder.baseUrl ?: authRepository.getBaseUrl()
-            
+
             // TODO: Call API to remove track from playlist
             emit(Resource.Success(true))
             
@@ -183,9 +169,7 @@ class DataPlaylistRepository @Inject constructor(
         try {
             emit(Resource.Loading())
             
-            val accessToken = AuthTokenHolder.accessToken ?: authRepository.getAccessToken()
-            val baseUrl = BaseUrlHolder.baseUrl ?: authRepository.getBaseUrl()
-            
+
             // TODO: Call API to delete playlist
             emit(Resource.Success(true))
             
@@ -198,9 +182,6 @@ class DataPlaylistRepository @Inject constructor(
     override suspend fun updatePlaylist(playlist: Playlist): Flow<Resource<Boolean>> = flow {
         try {
             emit(Resource.Loading())
-            
-            val accessToken = AuthTokenHolder.accessToken ?: authRepository.getAccessToken()
-            val baseUrl = BaseUrlHolder.baseUrl ?: authRepository.getBaseUrl()
             
             // TODO: Call API to update playlist
             emit(Resource.Success(true))

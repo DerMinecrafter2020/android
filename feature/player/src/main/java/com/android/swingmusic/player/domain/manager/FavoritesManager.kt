@@ -27,7 +27,7 @@ class FavoritesManager @Inject constructor() {
         val currentFavorites = _favoritesTracks.value
         if (!currentFavorites.any { it.trackHash == track.trackHash }) {
             _favoritesTracks.value = currentFavorites + track
-            Timber.d("Track auto-added to favorites: ${track.title}")
+            Timber.tag("FavoritesManager").d("Track auto-added to favorites: ${track.title}")
         }
     }
     
@@ -37,7 +37,7 @@ class FavoritesManager @Inject constructor() {
      */
     fun removeTrackFromFavorites(trackHash: String) {
         _favoritesTracks.value = _favoritesTracks.value.filter { it.trackHash != trackHash }
-        Timber.d("Track auto-removed from favorites: $trackHash")
+        Timber.tag("FavoritesManager").d("Track auto-removed from favorites: $trackHash")
     }
     
     /**
@@ -57,7 +57,7 @@ class FavoritesManager @Inject constructor() {
      */
     fun syncFavorites(tracks: List<Track>) {
         _favoritesTracks.value = tracks
-        Timber.d("Favorites synced with ${tracks.size} tracks")
+        Timber.tag("FavoritesManager").d("Favorites synced with ${tracks.size} tracks")
     }
     
     /**
@@ -65,6 +65,6 @@ class FavoritesManager @Inject constructor() {
      */
     fun clearFavorites() {
         _favoritesTracks.value = emptyList()
-        Timber.d("Favorites cleared")
+        Timber.tag("FavoritesManager").d("Favorites cleared")
     }
 }

@@ -116,7 +116,7 @@ fun PlaylistsScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         ) {
-                            items(resource.data ?: emptyList()) { playlist ->
+                            items(resource.data.orEmpty()) { playlist ->
                                 PlaylistItem(
                                     playlist = playlist,
                                     onPlaylistClick = {

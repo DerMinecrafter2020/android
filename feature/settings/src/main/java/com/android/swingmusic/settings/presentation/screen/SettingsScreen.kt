@@ -1,5 +1,6 @@
 package com.android.swingmusic.settings.presentation.screen
 
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,7 +50,13 @@ fun SettingsScreen(
     val versionInfo = remember {
         try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            "Version ${packageInfo.versionName} (${packageInfo.versionCode})"
+            val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode.toLong()
+            }
+            "Version ${packageInfo.versionName} ($versionCode)"
         } catch (e: Exception) {
             "Version unbekannt"
         }
