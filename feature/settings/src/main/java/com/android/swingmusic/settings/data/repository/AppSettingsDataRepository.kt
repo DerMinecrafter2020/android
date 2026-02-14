@@ -68,6 +68,8 @@ class AppSettingsDataRepository @Inject constructor(
 
     override val showLyrics: Flow<Boolean> = appSettings.getShowLyrics
 
+    override val ignoredUpdateVersion: Flow<String?> = appSettings.getIgnoredUpdateVersion
+
     override suspend fun setAutoUpdateEnabled(enabled: Boolean) {
         appSettings.updateAutoUpdateEnabled(enabled)
     }
@@ -78,5 +80,9 @@ class AppSettingsDataRepository @Inject constructor(
 
     override suspend fun setShowLyrics(show: Boolean) {
         appSettings.updateShowLyrics(show)
+    }
+
+    override suspend fun setIgnoredUpdateVersion(version: String?) {
+        appSettings.updateIgnoredUpdateVersion(version)
     }
 }

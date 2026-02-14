@@ -33,6 +33,7 @@ class AppSettings @Inject constructor(
         private val AUTO_UPDATE_ENABLED = androidx.datastore.preferences.core.booleanPreferencesKey("auto_update_enabled")
         private val START_PAGE = stringPreferencesKey("start_page")
         private val SHOW_LYRICS = androidx.datastore.preferences.core.booleanPreferencesKey("show_lyrics")
+        private val IGNORED_UPDATE_VERSION = stringPreferencesKey("ignored_update_version")
     }
 
     // Album Flows
@@ -90,6 +91,10 @@ class AppSettings @Inject constructor(
         it[SHOW_LYRICS] ?: false
     }
 
+    val getIgnoredUpdateVersion: Flow<String?> = context.dataStore.data.map {
+        it[IGNORED_UPDATE_VERSION]
+    }
+
     // General Settings Update Methods
     suspend fun updateAutoUpdateEnabled(enabled: Boolean) =
         context.dataStore.edit { it[AUTO_UPDATE_ENABLED] = enabled }
@@ -99,4 +104,13 @@ class AppSettings @Inject constructor(
 
     suspend fun updateShowLyrics(show: Boolean) =
         context.dataStore.edit { it[SHOW_LYRICS] = show }
+
+    suspend fun updateIgnoredUpdateVersion(version: String?) =
+        context.dataStore.edit { 
+            if (version != null) {
+                it[IGNORED_UPDATE_VERSION] = version
+            } else {
+                it.remove(IGNORED_UPDATE_VERSION)
+            }
+        }
 }

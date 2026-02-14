@@ -86,6 +86,7 @@ import android.os.Build
 import com.android.swingmusic.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -360,7 +361,11 @@ class MainActivity : ComponentActivity() {
                 
                 result.onSuccess { updateInfo ->
                     if (updateInfo != null) {
-                        showUpdateDialog(updateInfo)
+                        // Prüfe, ob diese Version bereits ignoriert wurde
+                        val ignoredVersion = settingsRepository.ignoredUpdateVersion.first()
+                        if (ignoredVersion != updateInfo.versionName) {
+                            showUpdateDialog(updateInfo)
+                        }
                     }
                 }.onFailure { e ->
                     timber.log.Timber.e(e, "Failed to check for updates")
@@ -376,9 +381,18 @@ class MainActivity : ComponentActivity() {
             .setTitle("Update verfügbar")
             .setMessage("Version ${updateInfo.versionName} ist verfügbar!\n\n${updateInfo.releaseNotes}")
             .setPositiveButton("Jetzt aktualisieren") { _, _ ->
+                lifecycleScope.launch {
+                    // Lösche ignorierte Version beim Update
+                    settingsRepository.setIgnoredUpdateVersion(null)
+                }
                 downloadAndInstallUpdate(updateInfo)
             }
-            .setNegativeButton("Später", null)
+            .setNegativeButton("Später") { _, _ ->
+                lifecycleScope.launch {
+                    // Speichere diese Version als ignoriert
+                    settingsRepository.setIgnoredUpdateVersion(updateInfo.versionName)
+                }
+            }
             .setCancelable(true)
             .show()
     }
