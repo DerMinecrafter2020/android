@@ -29,6 +29,44 @@
 - Look for existing test patterns in the codebase
 - Run lint/typecheck commands if available
 
+## Release Workflow
+When asked to create a GitHub release:
+
+1. **Update Version**
+   - Edit `gradle.properties`: Increment `versionCode` and `versionName`
+   - Format: versionName uses semantic versioning (e.g., 1.0.4.8)
+
+2. **Build Release APK**
+   - Run: `./gradlew assembleRelease`
+   - Fix any compilation errors that appear
+   - APK location: `app/build/outputs/apk/release/app-release.apk`
+
+3. **Test in Emulator**
+   - Check if emulator is running: `adb devices`
+   - Install APK: `adb install -r app/build/outputs/apk/release/app-release.apk`
+   - Test app functionality, especially new features
+   - Verify no crashes or critical bugs
+
+4. **Push Changes to Git**
+   - Stage changes: `git add .`
+   - Commit with descriptive message: `git commit -m "Release v{version}: {description}"`
+   - Push to origin: `git push origin main`
+
+5. **Create GitHub Release**
+   - Use: `gh release create v{version} app/build/outputs/apk/release/app-release.apk --title "v{version} - {Title}" --notes "{notes}"`
+   - Include comprehensive release notes with:
+     - ## 🎨 Design changes (if applicable)
+     - ### Feature categories with ✅ checkmarks
+     - ### Bug Fixes section
+     - ### Technical changes
+   - Repository: DerMinecrafter2020/android (origin)
+   - Note: swingmx/android is upstream
+
+6. **Common Issues**
+   - Missing import: Add `import com.ramcosta.composedestinations.spec.DestinationSpec` if needed
+   - Unused parameters: Remove from Preview/test composables
+   - R8 warnings about kotlin metadata: These are normal, ignore them
+
 ## Documentation
 - **NEVER create documentation files (*.md, README) unless explicitly requested**
 - Keep code self-documenting with clear naming
