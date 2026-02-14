@@ -783,7 +783,6 @@ fun FullPlayerPreview() {
             onClickNext = {},
             onToggleShuffleMode = {},
             onSeekPlayBack = {},
-            onClickLyricsIcon = {},
             onToggleFavorite = { _, _ -> },
             onClickQueueIcon = {},
             onClickMore = {}
